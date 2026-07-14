@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+
 @Service
 @RequiredArgsConstructor
 public class PatientService {
@@ -17,47 +18,47 @@ public class PatientService {
     public List<Patient> getAllPatients() {
         return repository.findAll();
     }
-    public Patient getPatient(String email) {
-        Patient patient = repository.findByEmail(email);
-        if (patient == null) {
-            throw new PatientNotFoundException(email);
-        }
-        return patient;
-    }
-    public Patient addPatient(Patient patient) {
 
+    public Patient getPatient(String email) {
+        return repository.findByEmail(email)
+                .orElseThrow(() -> new PatientNotFoundException(email));
+
+    }
+
+    public Patient addPatient(Patient patient) {
         if (repository.existsByEmail(patient.getEmail())) {
             throw new PatientAlreadyExistsException(patient.getEmail());
         }
 
         return repository.save(patient);
     }
+
     public Patient updatePatient(String email, Patient updatedPatient) {
+        Patient patient = repository.findByEmail(email)
+                        .orElseThrow(() -> new PatientNotFoundException(email));
 
-        Patient patient = repository.findByEmail(email);
+        repository.findByEmail(updatedPatient.getEmail())
+                        .ifPresent(foundPatient -> {
+                            if (!foundPatient.getEmail().equals(email)) {
+                                throw new PatientAlreadyExistsException(updatedPatient.getEmail());
+                            }
+                        });
+        patient.update(updatedPatient);
 
-        if (patient == null) {
-            throw new PatientNotFoundException(email);
-        }
-
-        patient.setFirstName(updatedPatient.getFirstName());
-        patient.setLastName(updatedPatient.getLastName());
-        patient.setPhoneNumber(updatedPatient.getPhoneNumber());
-        patient.setBirthday(updatedPatient.getBirthday());
-        patient.setIdCardNo(updatedPatient.getIdCardNo());
-        patient.setPassword(updatedPatient.getPassword());
-        patient.setEmail(updatedPatient.getEmail());
-
-        return repository.save(patient);
+        return patient;
     }
+
     public void deletePatient(String email) {
-
-        Patient patient = repository.findByEmail(email);
-
-        if (patient == null) {
-            throw new RuntimeException("Patient not found");
-        }
-
+        repository.findByEmail(email)
+                .orElseThrow(() -> new PatientNotFoundException(email));
         repository.deleteByEmail(email);
+
     }
+
+    public void changePassword(String email, String newPassword) {
+        Patient patient = repository.findByEmail(email)
+                .orElseThrow(() -> new PatientNotFoundException(email));
+        patient.setPassword(newPassword);
+    }
+
 }

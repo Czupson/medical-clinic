@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class PatientRepository {
@@ -12,16 +13,13 @@ public class PatientRepository {
     private final List<Patient> patients = new ArrayList<>();
 
     public List<Patient> findAll() {
-        return patients;
+        return new ArrayList<>(patients);
     }
 
-    public Patient findByEmail(String email) {
-        for (Patient patient : patients) {
-            if (patient.getEmail().equals(email)) {
-                return patient;
-            }
-        }
-        return null;
+    public Optional<Patient> findByEmail(String email) {
+        return patients.stream()
+                .filter(patient -> patient.getEmail().equals(email))
+                .findFirst();
     }
 
     public boolean existsByEmail(String email) {

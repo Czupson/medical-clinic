@@ -37,4 +37,10 @@ public class PatientController {
     public void deletePatient(@PathVariable String email) {
         service.deletePatient(email);
     }
+
+    @PatchMapping("/{email}/password")
+    public void changePassword(@PathVariable String email,
+                               @RequestBody String newPassword){
+        service.changePassword(email, newPassword);
+    }
 }
