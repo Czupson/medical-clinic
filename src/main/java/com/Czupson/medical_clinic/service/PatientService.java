@@ -26,6 +26,8 @@ public class PatientService {
     }
 
     public Patient addPatient(Patient patient) {
+        patient.validate();
+
         if (repository.existsByEmail(patient.getEmail())) {
             throw new PatientAlreadyExistsException(patient.getEmail());
         }
@@ -58,7 +60,6 @@ public class PatientService {
     public void changePassword(String email, String newPassword) {
         Patient patient = repository.findByEmail(email)
                 .orElseThrow(() -> new PatientNotFoundException(email));
-        patient.setPassword(newPassword);
+        patient.changePassword(newPassword);
     }
-
 }
