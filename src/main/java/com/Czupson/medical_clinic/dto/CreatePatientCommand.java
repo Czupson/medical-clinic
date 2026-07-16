@@ -12,7 +12,7 @@ public class CreatePatientCommand {
 
     private String email;
     private String password;
-    private String idCardNumber;
+    private String idCardNo;
     private String firstName;
     private String lastName;
     private String phoneNumber;

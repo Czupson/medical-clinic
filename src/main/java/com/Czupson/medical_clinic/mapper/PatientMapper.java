@@ -3,35 +3,15 @@ package com.Czupson.medical_clinic.mapper;
 import com.Czupson.medical_clinic.dto.CreatePatientCommand;
 import com.Czupson.medical_clinic.dto.UpdatePatientCommand;
 import com.Czupson.medical_clinic.model.Patient;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.springframework.stereotype.Component;
 
-@Component
-public class PatientMapper {
+@Mapper(componentModel = "spring")
+public interface PatientMapper {
+    @Mapping(target = "id", ignore = true)
+    Patient toPatient(CreatePatientCommand command);
 
-    public Patient toPatient(CreatePatientCommand command){
-        return new Patient(
-                null,
-                command.getEmail(),
-                command.getPassword(),
-                command.getIdCardNumber(),
-                command.getFirstName(),
-                command.getLastName(),
-                command.getPhoneNumber(),
-                command.getBirthday()
-        );
-    }
-
-    public Patient toPatient(UpdatePatientCommand command, Long id){
-        return new Patient(
-                id,
-                command.getEmail(),
-                command.getPassword(),
-                command.getIdCardNumber(),
-                command.getFirstName(),
-                command.getLastName(),
-                command.getPhoneNumber(),
-                command.getBirthday()
-
-        );
-    }
+    @Mapping(target = "id", ignore = true)
+    Patient toPatient(UpdatePatientCommand command);
 }

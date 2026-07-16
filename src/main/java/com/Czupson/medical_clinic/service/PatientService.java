@@ -9,6 +9,7 @@ import com.Czupson.medical_clinic.mapper.PatientMapper;
 import com.Czupson.medical_clinic.model.Patient;
 import com.Czupson.medical_clinic.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
+import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -54,7 +55,8 @@ public class PatientService {
                             }
                         });
 
-        Patient updatedPatient = mapper.toPatient(command, patient.getId());
+        Patient updatedPatient = mapper.toPatient(command);
+        updatedPatient.setId(patient.getId());
 
         patient.update(updatedPatient);
 
