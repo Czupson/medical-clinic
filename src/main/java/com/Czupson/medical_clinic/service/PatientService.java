@@ -1,7 +1,11 @@
 package com.Czupson.medical_clinic.service;
 
+import com.Czupson.medical_clinic.dto.ChangePasswordCommand;
+import com.Czupson.medical_clinic.dto.CreatePatientCommand;
+import com.Czupson.medical_clinic.dto.UpdatePatientCommand;
 import com.Czupson.medical_clinic.exception.PatientAlreadyExistsException;
 import com.Czupson.medical_clinic.exception.PatientNotFoundException;
+import com.Czupson.medical_clinic.mapper.PatientMapper;
 import com.Czupson.medical_clinic.model.Patient;
 import com.Czupson.medical_clinic.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PatientService {
     private final PatientRepository repository;
+    private final PatientMapper mapper;
 
     public List<Patient> getAllPatients() {
         return repository.findAll();
@@ -25,26 +30,32 @@ public class PatientService {
 
     }
 
-    public Patient addPatient(Patient patient) {
-        patient.validate();
+    public Patient addPatient(CreatePatientCommand command) {
 
-        if (repository.existsByEmail(patient.getEmail())) {
-            throw new PatientAlreadyExistsException(patient.getEmail());
+        if (repository.existsByEmail(command.getEmail())) {
+            throw new PatientAlreadyExistsException(command.getEmail());
         }
+
+        Patient patient = mapper.toPatient(command);
+
+        patient.validate();
 
         return repository.save(patient);
     }
 
-    public Patient updatePatient(String email, Patient updatedPatient) {
+    public Patient updatePatient(String email, UpdatePatientCommand command) {
         Patient patient = repository.findByEmail(email)
                         .orElseThrow(() -> new PatientNotFoundException(email));
 
-        repository.findByEmail(updatedPatient.getEmail())
+        repository.findByEmail(command.getEmail())
                         .ifPresent(foundPatient -> {
                             if (!foundPatient.getEmail().equals(email)) {
-                                throw new PatientAlreadyExistsException(updatedPatient.getEmail());
+                                throw new PatientAlreadyExistsException(command.getEmail());
                             }
                         });
+
+        Patient updatedPatient = mapper.toPatient(command, patient.getId());
+
         patient.update(updatedPatient);
 
         return patient;
@@ -57,9 +68,9 @@ public class PatientService {
 
     }
 
-    public void changePassword(String email, String newPassword) {
+    public void changePassword(String email, ChangePasswordCommand command) {
         Patient patient = repository.findByEmail(email)
                 .orElseThrow(() -> new PatientNotFoundException(email));
-        patient.changePassword(newPassword);
+        patient.changePassword(command.getNewPassword());
     }
 }

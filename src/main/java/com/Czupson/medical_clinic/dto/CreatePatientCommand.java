@@ -1,0 +1,20 @@
+package com.Czupson.medical_clinic.dto;
+
+
+import lombok.Getter;
+import lombok.Setter;
+
+import java.time.LocalDate;
+
+@Getter
+@Setter
+public class CreatePatientCommand {
+
+    private String email;
+    private String password;
+    private String idCardNumber;
+    private String firstName;
+    private String lastName;
+    private String phoneNumber;
+    private LocalDate birthday;
+}

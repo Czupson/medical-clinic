@@ -1,5 +1,8 @@
 package com.Czupson.medical_clinic.controller;
 
+import com.Czupson.medical_clinic.dto.ChangePasswordCommand;
+import com.Czupson.medical_clinic.dto.CreatePatientCommand;
+import com.Czupson.medical_clinic.dto.UpdatePatientCommand;
 import com.Czupson.medical_clinic.model.Patient;
 import com.Czupson.medical_clinic.service.PatientService;
 import lombok.RequiredArgsConstructor;
@@ -24,13 +27,13 @@ public class PatientController {
     }
 
     @PostMapping
-    public Patient addPatient(@RequestBody Patient patient) {
-        return service.addPatient(patient);
+    public Patient addPatient(@RequestBody CreatePatientCommand command) {
+        return service.addPatient(command);
     }
 
     @PutMapping("/{email}")
-    public Patient updatePatient(@PathVariable String email, @RequestBody Patient patient) {
-        return service.updatePatient(email, patient);
+    public Patient updatePatient(@PathVariable String email, @RequestBody UpdatePatientCommand command) {
+        return service.updatePatient(email, command);
     }
 
     @DeleteMapping("/{email}")
@@ -40,7 +43,7 @@ public class PatientController {
 
     @PatchMapping("/{email}/password")
     public void changePassword(@PathVariable String email,
-                               @RequestBody String newPassword){
-        service.changePassword(email, newPassword);
+                               @RequestBody ChangePasswordCommand command) {
+        service.changePassword(email, command);
     }
 }
