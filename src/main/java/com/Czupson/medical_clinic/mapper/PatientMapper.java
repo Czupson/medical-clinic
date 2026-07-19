@@ -5,7 +5,6 @@ import com.Czupson.medical_clinic.dto.UpdatePatientCommand;
 import com.Czupson.medical_clinic.model.Patient;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.stereotype.Component;
 
 @Mapper(componentModel = "spring")
 public interface PatientMapper {

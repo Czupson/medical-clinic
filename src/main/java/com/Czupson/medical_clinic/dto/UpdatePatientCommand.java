@@ -1,19 +1,14 @@
 package com.Czupson.medical_clinic.dto;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import java.time.LocalDate;
 
-@Getter
-@Setter
-public class UpdatePatientCommand {
-
-    private String email;
-    private String password;
-    private String idCardNo;
-    private String firstName;
-    private String lastName;
-    private String phoneNumber;
-    private LocalDate birthday;
+public record UpdatePatientCommand(
+    String email,
+    String password,
+    String idCardNo,
+    String firstName,
+    String lastName,
+    String phoneNumber,
+    LocalDate birthday
+){
 }

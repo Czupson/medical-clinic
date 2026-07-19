@@ -1,11 +1,8 @@
 package com.Czupson.medical_clinic.dto;
 
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
-public class ChangePasswordCommand {
+public record ChangePasswordCommand(
+     String newPassword
+){
 
-    private String newPassword;
 }

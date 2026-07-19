@@ -15,7 +15,6 @@ import java.time.LocalDate;
 public class Patient {
 
     private Long id;
-
     private String email;
     private String password;
     private String idCardNo;
@@ -26,7 +25,6 @@ public class Patient {
 
     public void update(Patient updatedPatient) {
         updatedPatient.validate();
-
         this.firstName = updatedPatient.getFirstName();
         this.lastName = updatedPatient.getLastName();
         this.phoneNumber = updatedPatient.getPhoneNumber();
@@ -98,7 +96,6 @@ public class Patient {
         if (newPassword.length() < 8) {
             throw new PatientDataValidationException("Password must have at least 8 characters");
         }
-
         this.password = newPassword;
     }
 }

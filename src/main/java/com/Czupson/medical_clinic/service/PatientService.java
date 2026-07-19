@@ -9,7 +9,6 @@ import com.Czupson.medical_clinic.mapper.PatientMapper;
 import com.Czupson.medical_clinic.model.Patient;
 import com.Czupson.medical_clinic.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
-import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,19 +27,14 @@ public class PatientService {
     public Patient getPatient(String email) {
         return repository.findByEmail(email)
                 .orElseThrow(() -> new PatientNotFoundException(email));
-
     }
 
     public Patient addPatient(CreatePatientCommand command) {
-
-        if (repository.existsByEmail(command.getEmail())) {
-            throw new PatientAlreadyExistsException(command.getEmail());
+        if (repository.existsByEmail(command.email())) {
+            throw new PatientAlreadyExistsException(command.email());
         }
-
         Patient patient = mapper.toPatient(command);
-
         patient.validate();
-
         return repository.save(patient);
     }
 
@@ -48,18 +42,15 @@ public class PatientService {
         Patient patient = repository.findByEmail(email)
                         .orElseThrow(() -> new PatientNotFoundException(email));
 
-        repository.findByEmail(command.getEmail())
+        repository.findByEmail(command.email())
                         .ifPresent(foundPatient -> {
                             if (!foundPatient.getEmail().equals(email)) {
-                                throw new PatientAlreadyExistsException(command.getEmail());
+                                throw new PatientAlreadyExistsException(command.email());
                             }
                         });
-
         Patient updatedPatient = mapper.toPatient(command);
         updatedPatient.setId(patient.getId());
-
         patient.update(updatedPatient);
-
         return patient;
     }
 
@@ -73,6 +64,6 @@ public class PatientService {
     public void changePassword(String email, ChangePasswordCommand command) {
         Patient patient = repository.findByEmail(email)
                 .orElseThrow(() -> new PatientNotFoundException(email));
-        patient.changePassword(command.getNewPassword());
+        patient.changePassword(command.newPassword());
     }
 }

@@ -6,6 +6,7 @@ import com.Czupson.medical_clinic.dto.UpdatePatientCommand;
 import com.Czupson.medical_clinic.model.Patient;
 import com.Czupson.medical_clinic.service.PatientService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +28,7 @@ public class PatientController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public Patient addPatient(@RequestBody CreatePatientCommand command) {
         return service.addPatient(command);
     }
@@ -37,6 +39,7 @@ public class PatientController {
     }
 
     @DeleteMapping("/{email}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletePatient(@PathVariable String email) {
         service.deletePatient(email);
     }
