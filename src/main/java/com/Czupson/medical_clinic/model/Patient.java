@@ -1,26 +1,45 @@
 package com.Czupson.medical_clinic.model;
 
 import com.Czupson.medical_clinic.exception.PatientDataValidationException;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import jakarta.persistence.Id;
 
 import java.time.LocalDate;
 
+@Entity
+@Table(name = "patients")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Patient {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false,unique = true)
     private String email;
+
+    @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false, unique = true)
     private String idCardNo;
+
+    @Column(nullable = false)
     private String firstName;
+
+    @Column(nullable = false)
     private String lastName;
+
+    @Column(nullable = false)
     private String phoneNumber;
+
     private LocalDate birthday;
 
     public void update(Patient updatedPatient) {
@@ -64,7 +83,7 @@ public class Patient {
         }
 
         if (!lastName.matches("^[A-Za-zĄąĆćĘęŁłŃńÓóŚśŹźŻż-]+$")) {
-            throw new PatientDataValidationException("Invalid first name");
+            throw new PatientDataValidationException("Invalid last name");
         }
 
         if (idCardNo == null || idCardNo.isBlank()) {

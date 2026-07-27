@@ -51,7 +51,7 @@ public class PatientService {
         Patient updatedPatient = mapper.toPatient(command);
         updatedPatient.setId(patient.getId());
         patient.update(updatedPatient);
-        return patient;
+        return repository.save(patient);
     }
 
     public void deletePatient(String email) {
@@ -65,5 +65,6 @@ public class PatientService {
         Patient patient = repository.findByEmail(email)
                 .orElseThrow(() -> new PatientNotFoundException(email));
         patient.changePassword(command.newPassword());
+        repository.save(patient);
     }
 }
