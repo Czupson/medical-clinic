@@ -1,8 +1,7 @@
 package com.Czupson.medical_clinic.controller;
 
-import com.Czupson.medical_clinic.dto.ChangePasswordCommand;
-import com.Czupson.medical_clinic.dto.CreatePatientCommand;
-import com.Czupson.medical_clinic.dto.UpdatePatientCommand;
+import com.Czupson.medical_clinic.dto.patient.CreatePatientCommand;
+import com.Czupson.medical_clinic.dto.patient.UpdatePatientCommand;
 import com.Czupson.medical_clinic.model.Patient;
 import com.Czupson.medical_clinic.service.PatientService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -73,17 +72,5 @@ public class PatientController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletePatient(@PathVariable String email) {
         service.deletePatient(email);
-    }
-
-    @Operation(summary = "Change patient password", description = "Changes patient's password.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Password changed successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid password"),
-            @ApiResponse(responseCode = "404", description = "Patient not found")
-    })
-    @PatchMapping("/{email}/password")
-    public void changePassword(@PathVariable String email,
-                               @RequestBody ChangePasswordCommand command) {
-        service.changePassword(email, command);
     }
 }

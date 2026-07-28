@@ -9,9 +9,9 @@ import java.util.Optional;
 @Repository
 public interface PatientRepository extends JpaRepository<Patient, Long> {
 
-    Optional<Patient> findByEmail(String email);
+    Optional<Patient> findByUserEmail(String email);
 
-    boolean existsByEmail(String email);
+    boolean existsByUserEmail(String email);
 
-    void deleteByEmail(String email);
+    void deleteByUserEmail(String email);
 }
