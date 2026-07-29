@@ -88,4 +88,40 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now()
         );
     }
+
+    @ExceptionHandler(FacilityNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleFacilityNotFoundException(FacilityNotFoundException ex) {
+        return ex.getMessage();
+    }
+
+    @ExceptionHandler(FacilityAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public String handleFacilityAlreadyExistsException(FacilityAlreadyExistsException ex) {
+        return ex.getMessage();
+    }
+
+    @ExceptionHandler(DoctorAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public String handleDoctorAlreadyExistsException(DoctorAlreadyExistsException ex) {
+        return ex.getMessage();
+    }
+
+    @ExceptionHandler(DoctorNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleDoctorNotFoundException(DoctorNotFoundException ex) {
+        return ex.getMessage();
+    }
+
+    @ExceptionHandler(DoctorDataValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleDoctorDataValidationException(DoctorDataValidationException ex) {
+        return ex.getMessage();
+    }
+
+    @ExceptionHandler(FacilityDataValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleFacilityDataValidationException(FacilityDataValidationException ex) {
+        return ex.getMessage();
+    }
 }
