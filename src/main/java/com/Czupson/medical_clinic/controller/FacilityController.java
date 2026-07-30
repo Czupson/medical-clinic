@@ -5,6 +5,7 @@ import com.Czupson.medical_clinic.dto.facility.UpdateFacilityCommand;
 import com.Czupson.medical_clinic.model.Facility;
 import com.Czupson.medical_clinic.service.FacilityService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +28,7 @@ public class FacilityController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public Facility addFacility(@RequestBody CreateFacilityCommand command) {
         return facilityService.addFacility(command);
     }
@@ -38,6 +40,7 @@ public class FacilityController {
     }
 
     @DeleteMapping("/{name}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteFacility(@PathVariable String name) {
         facilityService.deleteFacility(name);
     }

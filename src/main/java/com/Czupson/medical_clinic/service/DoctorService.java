@@ -16,7 +16,9 @@ import com.Czupson.medical_clinic.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -40,11 +42,15 @@ public class DoctorService {
         if (doctorRepository.existsByUser(user)) {
             throw new DoctorAlreadyExistsException(user.getId());
         }
-        Facility facility = facilityRepository.findById(command.facilityId())
-                .orElseThrow(() -> new FacilityNotFoundException(command.facilityId()));
+        Set<Facility> facilities = new HashSet<>(
+                facilityRepository.findAllById(command.facilityIds())
+        );
+        if (facilities.size() != command.facilityIds().size()) {
+            throw FacilityNotFoundException.multipleFacilities();
+        }
         Doctor doctor = doctorMapper.toDoctor(command);
         doctor.setUser(user);
-        doctor.setFacility(facility);
+        doctor.setFacilities(facilities);
         doctor.validate();
         return doctorRepository.save(doctor);
     }
@@ -52,10 +58,14 @@ public class DoctorService {
     public Doctor updateDoctor(Long id, UpdateDoctorCommand command) {
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new DoctorNotFoundException(id));
-        Facility facility = facilityRepository.findById(command.facilityId())
-                .orElseThrow(() -> new FacilityNotFoundException(command.facilityId()));
+        Set<Facility> facilities = new HashSet<>(
+                facilityRepository.findAllById(command.facilityIds())
+        );
+        if (facilities.size() != command.facilityIds().size()) {
+            throw FacilityNotFoundException.multipleFacilities();
+        }
         Doctor updatedDoctor = doctorMapper.toDoctor(command);
-        updatedDoctor.setFacility(facility);
+        updatedDoctor.setFacilities(facilities);
         doctor.update(updatedDoctor);
         return doctorRepository.save(doctor);
     }

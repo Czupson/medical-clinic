@@ -7,6 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "doctors")
 @Getter
@@ -32,16 +35,20 @@ public class Doctor {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "facility_id")
-    private Facility facility;
+    @ManyToMany
+    @JoinTable(
+            name = "doctor_facility",
+            joinColumns = @JoinColumn(name = "doctor_id"),
+            inverseJoinColumns = @JoinColumn(name = "facility_id")
+    )
+    private Set<Facility> facilities = new HashSet<>();
 
     public void update(Doctor updatedDoctor) {
         updatedDoctor.validate();
         this.firstName = updatedDoctor.getFirstName();
         this.lastName = updatedDoctor.getLastName();
         this.specialization = updatedDoctor.getSpecialization();
-        this.facility = updatedDoctor.getFacility();
+        this.facilities = new HashSet<>(updatedDoctor.getFacilities());
     }
 
     public void validate() {
@@ -57,8 +64,9 @@ public class Doctor {
         if (user == null) {
             throw new DoctorDataValidationException("Doctor must have a user");
         }
-        if (facility == null) {
-            throw new DoctorDataValidationException("Doctor must belong to a facility");
+        if (facilities == null || facilities.isEmpty()) {
+            throw new DoctorDataValidationException(
+                    "Doctor must be assigned to at least one facility");
         }
     }
 }

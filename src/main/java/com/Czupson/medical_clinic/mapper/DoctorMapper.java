@@ -11,11 +11,11 @@ public interface DoctorMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "user", ignore = true)
-    @Mapping(target = "facility", ignore = true)
+    @Mapping(target = "facilities", ignore = true)
     Doctor toDoctor(CreateDoctorCommand command);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "user", ignore = true)
-    @Mapping(target = "facility", ignore = true)
+    @Mapping(target = "facilities", ignore = true)
     Doctor toDoctor(UpdateDoctorCommand command);
 }

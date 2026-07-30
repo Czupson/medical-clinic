@@ -7,8 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "facilities")
@@ -37,8 +37,8 @@ public class Facility {
     @Column(nullable = false)
     private String buildingNumber;
 
-    @OneToMany(mappedBy = "facility")
-    private List<Doctor> doctors = new ArrayList<>();
+    @ManyToMany(mappedBy = "facilities")
+    private Set<Doctor> doctors = new HashSet<>();
 
     public void update(Facility updatedFacility) {
         updatedFacility.validate();
