@@ -2,9 +2,9 @@ package com.Czupson.medical_clinic.service;
 
 import com.Czupson.medical_clinic.dto.patient.CreatePatientCommand;
 import com.Czupson.medical_clinic.dto.patient.UpdatePatientCommand;
-import com.Czupson.medical_clinic.exception.PatientAlreadyExistsException;
-import com.Czupson.medical_clinic.exception.PatientNotFoundException;
-import com.Czupson.medical_clinic.exception.UserNotFoundException;
+import com.Czupson.medical_clinic.exception.patient.PatientAlreadyExistsException;
+import com.Czupson.medical_clinic.exception.patient.PatientNotFoundException;
+import com.Czupson.medical_clinic.exception.user.UserNotFoundException;
 import com.Czupson.medical_clinic.mapper.PatientMapper;
 import com.Czupson.medical_clinic.model.Patient;
 import com.Czupson.medical_clinic.model.User;

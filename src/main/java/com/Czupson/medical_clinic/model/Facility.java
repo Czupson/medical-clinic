@@ -1,6 +1,6 @@
 package com.Czupson.medical_clinic.model;
 
-import com.Czupson.medical_clinic.exception.FacilityDataValidationException;
+import com.Czupson.medical_clinic.exception.facility.FacilityDataValidationException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

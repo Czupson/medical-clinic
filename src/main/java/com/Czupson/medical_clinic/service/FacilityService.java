@@ -2,8 +2,8 @@ package com.Czupson.medical_clinic.service;
 
 import com.Czupson.medical_clinic.dto.facility.CreateFacilityCommand;
 import com.Czupson.medical_clinic.dto.facility.UpdateFacilityCommand;
-import com.Czupson.medical_clinic.exception.FacilityAlreadyExistsException;
-import com.Czupson.medical_clinic.exception.FacilityNotFoundException;
+import com.Czupson.medical_clinic.exception.facility.FacilityAlreadyExistsException;
+import com.Czupson.medical_clinic.exception.facility.FacilityNotFoundException;
 import com.Czupson.medical_clinic.mapper.FacilityMapper;
 import com.Czupson.medical_clinic.model.Facility;
 import com.Czupson.medical_clinic.repository.FacilityRepository;

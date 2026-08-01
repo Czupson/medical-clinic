@@ -2,10 +2,10 @@ package com.Czupson.medical_clinic.service;
 
 import com.Czupson.medical_clinic.dto.doctor.CreateDoctorCommand;
 import com.Czupson.medical_clinic.dto.doctor.UpdateDoctorCommand;
-import com.Czupson.medical_clinic.exception.DoctorAlreadyExistsException;
-import com.Czupson.medical_clinic.exception.DoctorNotFoundException;
-import com.Czupson.medical_clinic.exception.FacilityNotFoundException;
-import com.Czupson.medical_clinic.exception.UserNotFoundException;
+import com.Czupson.medical_clinic.exception.doctor.DoctorAlreadyExistsException;
+import com.Czupson.medical_clinic.exception.doctor.DoctorNotFoundException;
+import com.Czupson.medical_clinic.exception.facility.FacilitiesNotFoundException;
+import com.Czupson.medical_clinic.exception.user.UserNotFoundException;
 import com.Czupson.medical_clinic.mapper.DoctorMapper;
 import com.Czupson.medical_clinic.model.Doctor;
 import com.Czupson.medical_clinic.model.Facility;
@@ -32,22 +32,13 @@ public class DoctorService {
         return doctorRepository.findAll();
     }
     public Doctor getDoctor(Long id) {
-        return doctorRepository.findById(id)
-                .orElseThrow(() -> new DoctorNotFoundException(id));
+        return findDoctor(id);
     }
 
     public Doctor addDoctor(CreateDoctorCommand command) {
-        User user = userRepository.findById(command.userId())
-                .orElseThrow(() -> new UserNotFoundException(command.userId()));
-        if (doctorRepository.existsByUser(user)) {
-            throw new DoctorAlreadyExistsException(user.getId());
-        }
-        Set<Facility> facilities = new HashSet<>(
-                facilityRepository.findAllById(command.facilityIds())
-        );
-        if (facilities.size() != command.facilityIds().size()) {
-            throw FacilityNotFoundException.multipleFacilities();
-        }
+        User user = findUser(command.userId());
+        validateDoctorDoesNotExist(user);
+        Set<Facility> facilities = findFacilitiesOrThrow(command.facilityIds());
         Doctor doctor = doctorMapper.toDoctor(command);
         doctor.setUser(user);
         doctor.setFacilities(facilities);
@@ -56,14 +47,8 @@ public class DoctorService {
     }
 
     public Doctor updateDoctor(Long id, UpdateDoctorCommand command) {
-        Doctor doctor = doctorRepository.findById(id)
-                .orElseThrow(() -> new DoctorNotFoundException(id));
-        Set<Facility> facilities = new HashSet<>(
-                facilityRepository.findAllById(command.facilityIds())
-        );
-        if (facilities.size() != command.facilityIds().size()) {
-            throw FacilityNotFoundException.multipleFacilities();
-        }
+        Doctor doctor = findDoctor(id);
+        Set<Facility> facilities = findFacilitiesOrThrow(command.facilityIds());
         Doctor updatedDoctor = doctorMapper.toDoctor(command);
         updatedDoctor.setFacilities(facilities);
         doctor.update(updatedDoctor);
@@ -71,8 +56,32 @@ public class DoctorService {
     }
 
     public void deleteDoctor(Long id) {
-        Doctor doctor = doctorRepository.findById(id)
+        doctorRepository.delete(findDoctor(id));
+    }
+
+    private Doctor findDoctor(Long id) {
+        return doctorRepository.findById(id)
                 .orElseThrow(() -> new DoctorNotFoundException(id));
-        doctorRepository.delete(doctor);
+    }
+
+    private User findUser(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+    }
+
+    private void validateDoctorDoesNotExist(User user) {
+        if (doctorRepository.existsByUser(user)) {
+            throw new DoctorAlreadyExistsException(user.getId());
+        }
+    }
+
+    private Set<Facility> findFacilitiesOrThrow(Set<Long> facilityIds) {
+        Set<Facility> facilities = new HashSet<>(
+                facilityRepository.findAllById(facilityIds)
+        );
+        if (facilities.size() != facilityIds.size()) {
+            throw new FacilitiesNotFoundException();
+        }
+        return facilities;
     }
 }
