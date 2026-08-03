@@ -10,10 +10,10 @@ import org.mapstruct.Mapping;
 public interface PatientMapper {
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "com/Czupson/medical_clinic/exception/user", ignore = true)
+    @Mapping(target = "user", ignore = true)
     Patient toPatient(CreatePatientCommand command);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "com/Czupson/medical_clinic/exception/user", ignore = true)
+    @Mapping(target = "user", ignore = true)
     Patient toPatient(UpdatePatientCommand command);
 }
