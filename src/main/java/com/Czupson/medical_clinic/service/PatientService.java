@@ -1,13 +1,15 @@
 package com.Czupson.medical_clinic.service;
 
-import com.Czupson.medical_clinic.dto.ChangePasswordCommand;
-import com.Czupson.medical_clinic.dto.CreatePatientCommand;
-import com.Czupson.medical_clinic.dto.UpdatePatientCommand;
-import com.Czupson.medical_clinic.exception.PatientAlreadyExistsException;
-import com.Czupson.medical_clinic.exception.PatientNotFoundException;
+import com.Czupson.medical_clinic.dto.patient.CreatePatientCommand;
+import com.Czupson.medical_clinic.dto.patient.UpdatePatientCommand;
+import com.Czupson.medical_clinic.exception.patient.PatientAlreadyExistsException;
+import com.Czupson.medical_clinic.exception.patient.PatientNotFoundException;
+import com.Czupson.medical_clinic.exception.user.UserNotFoundException;
 import com.Czupson.medical_clinic.mapper.PatientMapper;
 import com.Czupson.medical_clinic.model.Patient;
+import com.Czupson.medical_clinic.model.User;
 import com.Czupson.medical_clinic.repository.PatientRepository;
+import com.Czupson.medical_clinic.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,51 +21,55 @@ import java.util.List;
 public class PatientService {
     private final PatientRepository repository;
     private final PatientMapper mapper;
+    private final UserRepository userRepository;
 
     public List<Patient> getAllPatients() {
         return repository.findAll();
     }
 
     public Patient getPatient(String email) {
-        return repository.findByEmail(email)
-                .orElseThrow(() -> new PatientNotFoundException(email));
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException(email));
+        Patient patient = user.getPatient();
+        if (patient == null) {
+            throw new PatientNotFoundException(email);
+        }
+        return patient;
     }
 
     public Patient addPatient(CreatePatientCommand command) {
-        if (repository.existsByEmail(command.email())) {
-            throw new PatientAlreadyExistsException(command.email());
+        User user = userRepository.findById(command.userId())
+                .orElseThrow(() -> new UserNotFoundException(command.userId()));
+        if (user.getPatient() != null) {
+            throw new PatientAlreadyExistsException(user.getEmail());
         }
         Patient patient = mapper.toPatient(command);
+        patient.setUser(user);
         patient.validate();
         return repository.save(patient);
     }
 
     public Patient updatePatient(String email, UpdatePatientCommand command) {
-        Patient patient = repository.findByEmail(email)
-                        .orElseThrow(() -> new PatientNotFoundException(email));
-
-        repository.findByEmail(command.email())
-                        .ifPresent(foundPatient -> {
-                            if (!foundPatient.getEmail().equals(email)) {
-                                throw new PatientAlreadyExistsException(command.email());
-                            }
-                        });
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException(email));
+        Patient patient = user.getPatient();
+        if (patient == null) {
+            throw new PatientNotFoundException(email);
+        }
         Patient updatedPatient = mapper.toPatient(command);
         updatedPatient.setId(patient.getId());
+        updatedPatient.setUser(user);
         patient.update(updatedPatient);
-        return patient;
+        return repository.save(patient);
     }
 
     public void deletePatient(String email) {
-        repository.findByEmail(email)
-                .orElseThrow(() -> new PatientNotFoundException(email));
-        repository.deleteByEmail(email);
-
-    }
-
-    public void changePassword(String email, ChangePasswordCommand command) {
-        Patient patient = repository.findByEmail(email)
-                .orElseThrow(() -> new PatientNotFoundException(email));
-        patient.changePassword(command.newPassword());
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException(email));
+        Patient patient = user.getPatient();
+        if (patient == null) {
+            throw new PatientNotFoundException(email);
+        }
+        repository.delete(patient);
     }
 }

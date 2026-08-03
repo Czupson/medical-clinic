@@ -1,38 +1,17 @@
 package com.Czupson.medical_clinic.repository;
 
 import com.Czupson.medical_clinic.model.Patient;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class PatientRepository {
+public interface PatientRepository extends JpaRepository<Patient, Long> {
 
-    private final List<Patient> patients = new ArrayList<>();
+    Optional<Patient> findByUserEmail(String email);
 
-    public List<Patient> findAll() {
-        return new ArrayList<>(patients);
-    }
+    boolean existsByUserEmail(String email);
 
-    public Optional<Patient> findByEmail(String email) {
-        return patients.stream()
-                .filter(patient -> patient.getEmail().equals(email))
-                .findFirst();
-    }
-
-    public boolean existsByEmail(String email) {
-        return patients.stream()
-                .anyMatch(patient -> patient.getEmail().equals(email));
-    }
-
-    public Patient save(Patient patient) {
-        patients.add(patient);
-        return patient;
-    }
-
-    public void deleteByEmail(String email) {
-        patients.removeIf(patient -> patient.getEmail().equals(email));
-    }
+    void deleteByUserEmail(String email);
 }

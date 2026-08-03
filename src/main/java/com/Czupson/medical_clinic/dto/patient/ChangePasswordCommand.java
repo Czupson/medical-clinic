@@ -1,4 +1,4 @@
-package com.Czupson.medical_clinic.dto;
+package com.Czupson.medical_clinic.dto.patient;
 
 
 public record ChangePasswordCommand(
