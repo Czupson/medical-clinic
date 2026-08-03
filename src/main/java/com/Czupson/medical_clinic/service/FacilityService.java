@@ -22,35 +22,46 @@ public class FacilityService {
         return facilityRepository.findAll();
     }
 
-    public Facility getFacility(String name) {
-        return facilityRepository.findByName(name)
-                .orElseThrow(() -> new FacilityNotFoundException(name));
+    public Facility getFacility(Long id) {
+        return findFacility(id);
     }
 
     public Facility addFacility(CreateFacilityCommand command) {
-        if (facilityRepository.existsByName(command.name())) {
-            throw new FacilityAlreadyExistsException(command.name());
-        }
+        validateFacilityDoesNotExist(command.name());
         Facility facility = facilityMapper.toFacility(command);
         facility.validate();
         return facilityRepository.save(facility);
     }
 
-    public Facility updateFacility(String name, UpdateFacilityCommand command) {
-        Facility facility = facilityRepository.findByName(name)
-                .orElseThrow(() -> new FacilityNotFoundException(name));
-        if (!facility.getName().equals(command.name())
-                && facilityRepository.existsByName(command.name())) {
-            throw new FacilityAlreadyExistsException(command.name());
-        }
+    public Facility updateFacility(Long id, UpdateFacilityCommand command) {
+        Facility facility = findFacility(id);
+        validateFacilityNameUniqueness(id, command.name());
         Facility updatedFacility = facilityMapper.toFacility(command);
         facility.update(updatedFacility);
         return facilityRepository.save(facility);
     }
 
-    public void deleteFacility(String name) {
-        Facility facility = facilityRepository.findByName(name)
-                .orElseThrow(() -> new FacilityNotFoundException(name));
-        facilityRepository.delete(facility);
+    public void deleteFacility(Long id) {
+        facilityRepository.delete(findFacility(id));
+    }
+
+    private Facility findFacility(Long id) {
+        return facilityRepository.findById(id)
+                .orElseThrow(() -> new FacilityNotFoundException(id));
+    }
+
+    private void validateFacilityDoesNotExist(String name) {
+        if (facilityRepository.existsByName(name)) {
+            throw new FacilityAlreadyExistsException(name);
+        }
+    }
+
+    private void validateFacilityNameUniqueness(Long facilityId, String name) {
+        facilityRepository.findByName(name)
+                .ifPresent(foundFacility -> {
+                    if (!foundFacility.getId().equals(facilityId)) {
+                        throw new FacilityAlreadyExistsException(name);
+                    }
+                });
     }
 }

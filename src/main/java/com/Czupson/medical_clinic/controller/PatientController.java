@@ -29,14 +29,14 @@ public class PatientController {
         return service.getAllPatients();
     }
 
-    @Operation(summary = "Get patient by email", description = "Returns patient with the specified email")
+    @Operation(summary = "Get patient by id", description = "Returns patient with the specified id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Patient found"),
             @ApiResponse(responseCode = "404", description = "Patient not found")
     })
-    @GetMapping("/{email}")
-    public Patient getPatient(@PathVariable String email) {
-        return service.getPatient(email);
+    @GetMapping("/{id}")
+    public Patient getPatient(@PathVariable Long id) {
+        return service.getPatient(id);
     }
 
     @Operation(summary = "Create patient", description = "Creates a new patient")
@@ -58,19 +58,19 @@ public class PatientController {
             @ApiResponse(responseCode = "404", description = "Patient not found"),
             @ApiResponse(responseCode = "409", description = "Patient already exists")
     })
-    @PutMapping("/{email}")
-    public Patient updatePatient(@PathVariable String email, @RequestBody UpdatePatientCommand command) {
-        return service.updatePatient(email, command);
+    @PutMapping("/{id}")
+    public Patient updatePatient(@PathVariable Long id, @RequestBody UpdatePatientCommand command) {
+        return service.updatePatient(id, command);
     }
 
-    @Operation(summary = "Delete patient", description = "Deletes patient with the specified email")
+    @Operation(summary = "Delete patient", description = "Deletes patient with the specified id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Patient deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Patient not found")
     })
-    @DeleteMapping("/{email}")
+    @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deletePatient(@PathVariable String email) {
-        service.deletePatient(email);
+    public void deletePatient(@PathVariable Long id) {
+        service.deletePatient(id);
     }
 }

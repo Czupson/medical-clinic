@@ -22,9 +22,9 @@ public class FacilityController {
         return facilityService.getAllFacilities();
     }
 
-    @GetMapping("/{name}")
-    public Facility getFacility(@PathVariable String name) {
-        return facilityService.getFacility(name);
+    @GetMapping("/{id}")
+    public Facility getFacility(@PathVariable Long id) {
+        return facilityService.getFacility(id);
     }
 
     @PostMapping
@@ -33,15 +33,15 @@ public class FacilityController {
         return facilityService.addFacility(command);
     }
 
-    @PutMapping("/{name}")
-    public Facility updateFacility(@PathVariable String name,
+    @PutMapping("/{id}")
+    public Facility updateFacility(@PathVariable Long id,
                                    @RequestBody UpdateFacilityCommand command) {
-        return facilityService.updateFacility(name, command);
+        return facilityService.updateFacility(id, command);
     }
 
-    @DeleteMapping("/{name}")
+    @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteFacility(@PathVariable String name) {
-        facilityService.deleteFacility(name);
+    public void deleteFacility(@PathVariable Long id) {
+        facilityService.deleteFacility(id);
     }
 }

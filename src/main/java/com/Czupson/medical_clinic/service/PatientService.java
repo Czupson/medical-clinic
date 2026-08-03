@@ -27,49 +27,45 @@ public class PatientService {
         return repository.findAll();
     }
 
-    public Patient getPatient(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException(email));
-        Patient patient = user.getPatient();
-        if (patient == null) {
-            throw new PatientNotFoundException(email);
-        }
-        return patient;
+    public Patient getPatient(Long id) {
+        return findPatient(id);
     }
 
     public Patient addPatient(CreatePatientCommand command) {
-        User user = userRepository.findById(command.userId())
-                .orElseThrow(() -> new UserNotFoundException(command.userId()));
-        if (user.getPatient() != null) {
-            throw new PatientAlreadyExistsException(user.getEmail());
-        }
+        User user = findUser(command.userId());
+        validatePatientDoesNotExist(user);
         Patient patient = mapper.toPatient(command);
         patient.setUser(user);
         patient.validate();
         return repository.save(patient);
     }
 
-    public Patient updatePatient(String email, UpdatePatientCommand command) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException(email));
-        Patient patient = user.getPatient();
-        if (patient == null) {
-            throw new PatientNotFoundException(email);
-        }
+    public Patient updatePatient(Long id, UpdatePatientCommand command) {
+        Patient patient = findPatient(id);
         Patient updatedPatient = mapper.toPatient(command);
         updatedPatient.setId(patient.getId());
-        updatedPatient.setUser(user);
+        updatedPatient.setUser(patient.getUser());
         patient.update(updatedPatient);
         return repository.save(patient);
     }
 
-    public void deletePatient(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException(email));
-        Patient patient = user.getPatient();
-        if (patient == null) {
-            throw new PatientNotFoundException(email);
+    public void deletePatient(Long id) {
+        repository.delete(findPatient(id));
+    }
+
+    private Patient findPatient(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new PatientNotFoundException(id));
+    }
+
+    private User findUser(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+    }
+
+    private void validatePatientDoesNotExist(User user) {
+        if (user.getPatient() != null) {
+            throw new PatientAlreadyExistsException(user.getEmail());
         }
-        repository.delete(patient);
     }
 }
