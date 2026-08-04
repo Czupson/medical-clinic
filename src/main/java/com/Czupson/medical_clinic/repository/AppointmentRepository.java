@@ -15,5 +15,12 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             LocalDateTime appointmentEnd,
             LocalDateTime appointmentStart
     );
+
+    boolean existsByPatientAndAppointmentStartLessThanAndAppointmentEndGreaterThan(
+            Patient patient,
+            LocalDateTime appointmentEnd,
+            LocalDateTime appointmentStart
+    );
+
     List<Appointment> findByPatient(Patient patient);
 }

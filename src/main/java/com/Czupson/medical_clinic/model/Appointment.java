@@ -77,7 +77,7 @@ public class Appointment {
     private void validateQuarterHour(LocalDateTime dateTime, String fieldName) {
         int minute = dateTime.getMinute();
 
-        if (minute != 0 && minute != 15 && minute != 30 && minute != 45) {
+        if (minute % 15 != 0) {
             throw new AppointmentDataValidationException(
                     fieldName + " must be at 00, 15, 30 or 45 minutes");
         }

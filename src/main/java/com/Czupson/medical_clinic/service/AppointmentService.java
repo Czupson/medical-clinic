@@ -2,10 +2,7 @@ package com.Czupson.medical_clinic.service;
 
 import com.Czupson.medical_clinic.dto.appointment.BookAppointmentCommand;
 import com.Czupson.medical_clinic.dto.appointment.CreateAppointmentCommand;
-import com.Czupson.medical_clinic.exception.appointment.AppointmentAlreadyBookedException;
-import com.Czupson.medical_clinic.exception.appointment.AppointmentAlreadyExistsException;
-import com.Czupson.medical_clinic.exception.appointment.AppointmentDataValidationException;
-import com.Czupson.medical_clinic.exception.appointment.AppointmentNotFoundException;
+import com.Czupson.medical_clinic.exception.appointment.*;
 import com.Czupson.medical_clinic.exception.doctor.DoctorNotFoundException;
 import com.Czupson.medical_clinic.exception.patient.PatientNotFoundException;
 import com.Czupson.medical_clinic.mapper.AppointmentMapper;
@@ -53,11 +50,15 @@ public class AppointmentService {
 
     public Appointment bookAppointment(Long appointmentId,
                                        BookAppointmentCommand command) {
-
         Appointment appointment = findAppointment(appointmentId);
         validateAppointmentIsAvailable(appointment);
         validateAppointmentIsInFuture(appointment);
         Patient patient = findPatient(command.patientId());
+        validatePatientAppointmentTimeAvailability(
+                patient,
+                appointment.getAppointmentStart(),
+                appointment.getAppointmentEnd()
+        );
         appointment.setPatient(patient);
         return appointmentRepository.save(appointment);
     }
@@ -109,6 +110,20 @@ public class AppointmentService {
         if (appointment.getAppointmentStart().isBefore(LocalDateTime.now())) {
             throw new AppointmentDataValidationException(
                     "Cannot book an appointment in the past");
+        }
+    }
+
+    private void validatePatientAppointmentTimeAvailability(
+            Patient patient,
+            LocalDateTime appointmentStart,
+            LocalDateTime appointmentEnd) {
+
+        if (appointmentRepository
+                .existsByPatientAndAppointmentStartLessThanAndAppointmentEndGreaterThan(
+                        patient,
+                        appointmentEnd,
+                        appointmentStart)) {
+            throw new PatientAppointmentConflictException();
         }
     }
 }
