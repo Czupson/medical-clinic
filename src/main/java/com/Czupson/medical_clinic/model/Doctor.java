@@ -43,7 +43,7 @@ public class Doctor {
     )
     private Set<Facility> facilities = new HashSet<>();
 
-    @OneToMany(mappedBy = "doctor")
+    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Appointment> appointments = new HashSet<>();
 
     public void update(Doctor updatedDoctor) {

@@ -86,5 +86,4 @@ public class Appointment {
                     fieldName + " must be an exact quarter hour");
         }
     }
-
 }
