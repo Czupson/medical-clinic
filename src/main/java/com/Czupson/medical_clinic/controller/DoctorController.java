@@ -5,6 +5,8 @@ import com.Czupson.medical_clinic.dto.doctor.UpdateDoctorCommand;
 import com.Czupson.medical_clinic.model.Doctor;
 import com.Czupson.medical_clinic.service.DoctorService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,8 +20,8 @@ public class DoctorController {
     private final DoctorService doctorService;
 
     @GetMapping
-    public List<Doctor> getAllDoctors() {
-        return doctorService.getAllDoctors();
+    public Page<Doctor> getAllDoctors(Pageable pageable) {
+        return doctorService.getAllDoctors(pageable);
     }
 
     @GetMapping("/{id}")

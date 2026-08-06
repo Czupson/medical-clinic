@@ -5,6 +5,8 @@ import com.Czupson.medical_clinic.dto.appointment.CreateAppointmentCommand;
 import com.Czupson.medical_clinic.model.Appointment;
 import com.Czupson.medical_clinic.service.AppointmentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,8 +20,8 @@ public class AppointmentController {
     private final AppointmentService appointmentService;
 
     @GetMapping
-    public List<Appointment> getAllAppointments() {
-        return appointmentService.getAllAppointments();
+    public  Page<Appointment> getAllAppointments(Pageable pageable) {
+        return appointmentService.getAllAppointments(pageable);
     }
 
     @GetMapping("/{id}")

@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,8 +27,8 @@ public class PatientController {
             @ApiResponse(responseCode = "200", description = "Patients retrieved successfully")
     })
     @GetMapping
-    public List<Patient> getAllPatients() {
-        return service.getAllPatients();
+    public Page<Patient> getAllPatients(Pageable pageable) {
+        return service.getAllPatients(pageable);
     }
 
     @Operation(summary = "Get patient by id", description = "Returns patient with the specified id")

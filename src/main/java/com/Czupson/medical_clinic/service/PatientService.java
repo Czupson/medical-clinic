@@ -11,9 +11,10 @@ import com.Czupson.medical_clinic.model.User;
 import com.Czupson.medical_clinic.repository.PatientRepository;
 import com.Czupson.medical_clinic.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 
 @Service
@@ -23,8 +24,8 @@ public class PatientService {
     private final PatientMapper mapper;
     private final UserRepository userRepository;
 
-    public List<Patient> getAllPatients() {
-        return repository.findAll();
+    public Page<Patient> getAllPatients(Pageable pageable) {
+        return repository.findAll(pageable);
     }
 
     public Patient getPatient(Long id) {

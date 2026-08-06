@@ -8,9 +8,9 @@ import com.Czupson.medical_clinic.mapper.FacilityMapper;
 import com.Czupson.medical_clinic.model.Facility;
 import com.Czupson.medical_clinic.repository.FacilityRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -18,8 +18,8 @@ public class FacilityService {
     private final FacilityRepository facilityRepository;
     private final FacilityMapper facilityMapper;
 
-    public List<Facility> getAllFacilities() {
-        return facilityRepository.findAll();
+    public Page<Facility> getAllFacilities(Pageable pageable) {
+        return facilityRepository.findAll(pageable);
     }
 
     public Facility getFacility(Long id) {

@@ -10,10 +10,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/api/users")
@@ -28,8 +29,8 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Users retrieved successfully")
     })
     @GetMapping
-    public List<User> getAllUsers() {
-        return service.getAllUsers();
+    public Page<User> getAllUsers(Pageable pageable) {
+        return service.getAllUsers(pageable);
     }
 
     @Operation(summary = "Get user by id", description = "Returns user with the specified id")
