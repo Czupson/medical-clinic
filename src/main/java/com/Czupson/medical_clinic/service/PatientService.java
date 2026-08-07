@@ -1,6 +1,8 @@
 package com.Czupson.medical_clinic.service;
 
+import com.Czupson.medical_clinic.dto.PageDto;
 import com.Czupson.medical_clinic.dto.patient.CreatePatientCommand;
+import com.Czupson.medical_clinic.dto.patient.PatientDto;
 import com.Czupson.medical_clinic.dto.patient.UpdatePatientCommand;
 import com.Czupson.medical_clinic.exception.patient.PatientAlreadyExistsException;
 import com.Czupson.medical_clinic.exception.patient.PatientNotFoundException;
@@ -11,9 +13,7 @@ import com.Czupson.medical_clinic.model.User;
 import com.Czupson.medical_clinic.repository.PatientRepository;
 import com.Czupson.medical_clinic.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
-
 import org.springframework.data.domain.Pageable;
 
 
@@ -23,9 +23,13 @@ public class PatientService {
     private final PatientRepository repository;
     private final PatientMapper mapper;
     private final UserRepository userRepository;
+    private final PatientMapper patientMapper;
 
-    public Page<Patient> getAllPatients(Pageable pageable) {
-        return repository.findAll(pageable);
+    public PageDto<PatientDto> getAllPatients(Pageable pageable) {
+        return PageDto.from(
+                repository.findAll(pageable)
+                        .map(patientMapper::toDto)
+        );
     }
 
     public Patient getPatient(Long id) {

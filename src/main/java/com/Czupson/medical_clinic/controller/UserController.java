@@ -1,8 +1,10 @@
 package com.Czupson.medical_clinic.controller;
 
+import com.Czupson.medical_clinic.dto.PageDto;
 import com.Czupson.medical_clinic.dto.patient.ChangePasswordCommand;
 import com.Czupson.medical_clinic.dto.user.CreateUserCommand;
 import com.Czupson.medical_clinic.dto.user.UpdateUserCommand;
+import com.Czupson.medical_clinic.dto.user.UserDto;
 import com.Czupson.medical_clinic.mapper.UserMapper;
 import com.Czupson.medical_clinic.model.User;
 import com.Czupson.medical_clinic.service.UserService;
@@ -10,7 +12,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +21,6 @@ import org.springframework.data.domain.Pageable;
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
-
     private final UserService service;
     private final UserMapper mapper;
 
@@ -29,7 +29,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Users retrieved successfully")
     })
     @GetMapping
-    public Page<User> getAllUsers(Pageable pageable) {
+    public PageDto<UserDto> getAllUsers(Pageable pageable) {
         return service.getAllUsers(pageable);
     }
 

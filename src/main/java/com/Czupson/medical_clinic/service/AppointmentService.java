@@ -1,5 +1,7 @@
 package com.Czupson.medical_clinic.service;
 
+import com.Czupson.medical_clinic.dto.PageDto;
+import com.Czupson.medical_clinic.dto.appointment.AppointmentDto;
 import com.Czupson.medical_clinic.dto.appointment.BookAppointmentCommand;
 import com.Czupson.medical_clinic.dto.appointment.CreateAppointmentCommand;
 import com.Czupson.medical_clinic.exception.appointment.*;
@@ -13,7 +15,6 @@ import com.Czupson.medical_clinic.repository.AppointmentRepository;
 import com.Czupson.medical_clinic.repository.DoctorRepository;
 import com.Czupson.medical_clinic.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -28,8 +29,11 @@ public class AppointmentService {
     private final PatientRepository patientRepository;
     private final AppointmentMapper appointmentMapper;
 
-    public Page<Appointment> getAllAppointments(Pageable pageable) {
-        return appointmentRepository.findAll(pageable);
+    public PageDto<AppointmentDto> getAllAppointments(Pageable pageable) {
+        return PageDto.from(
+                appointmentRepository.findAll(pageable)
+                        .map(appointmentMapper::toDto)
+        );
     }
 
     public Appointment getAppointment(Long id) {

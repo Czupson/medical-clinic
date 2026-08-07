@@ -1,6 +1,8 @@
 package com.Czupson.medical_clinic.service;
 
+import com.Czupson.medical_clinic.dto.PageDto;
 import com.Czupson.medical_clinic.dto.facility.CreateFacilityCommand;
+import com.Czupson.medical_clinic.dto.facility.FacilityDto;
 import com.Czupson.medical_clinic.dto.facility.UpdateFacilityCommand;
 import com.Czupson.medical_clinic.exception.facility.FacilityAlreadyExistsException;
 import com.Czupson.medical_clinic.exception.facility.FacilityNotFoundException;
@@ -8,7 +10,6 @@ import com.Czupson.medical_clinic.mapper.FacilityMapper;
 import com.Czupson.medical_clinic.model.Facility;
 import com.Czupson.medical_clinic.repository.FacilityRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -18,8 +19,11 @@ public class FacilityService {
     private final FacilityRepository facilityRepository;
     private final FacilityMapper facilityMapper;
 
-    public Page<Facility> getAllFacilities(Pageable pageable) {
-        return facilityRepository.findAll(pageable);
+    public PageDto<FacilityDto> getAllFacilities(Pageable pageable) {
+        return PageDto.from(
+                facilityRepository.findAll(pageable)
+                        .map(facilityMapper::toDto)
+        );
     }
 
     public Facility getFacility(Long id) {

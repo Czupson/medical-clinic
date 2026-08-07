@@ -1,11 +1,13 @@
 package com.Czupson.medical_clinic.service;
 
+import com.Czupson.medical_clinic.dto.PageDto;
+import com.Czupson.medical_clinic.dto.user.UserDto;
 import com.Czupson.medical_clinic.exception.user.UserAlreadyExistsException;
 import com.Czupson.medical_clinic.exception.user.UserNotFoundException;
+import com.Czupson.medical_clinic.mapper.UserMapper;
 import com.Czupson.medical_clinic.model.User;
 import com.Czupson.medical_clinic.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -14,9 +16,13 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
-    public Page<User> getAllUsers(Pageable pageable) {
-        return userRepository.findAll(pageable);
+    public PageDto<UserDto> getAllUsers(Pageable pageable) {
+        return PageDto.from(
+                userRepository.findAll(pageable)
+                        .map(userMapper::toDto)
+        );
     }
 
     public User getUser(Long id) {

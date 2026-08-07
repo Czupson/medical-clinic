@@ -1,6 +1,8 @@
 package com.Czupson.medical_clinic.controller;
 
+import com.Czupson.medical_clinic.dto.PageDto;
 import com.Czupson.medical_clinic.dto.patient.CreatePatientCommand;
+import com.Czupson.medical_clinic.dto.patient.PatientDto;
 import com.Czupson.medical_clinic.dto.patient.UpdatePatientCommand;
 import com.Czupson.medical_clinic.model.Patient;
 import com.Czupson.medical_clinic.service.PatientService;
@@ -8,12 +10,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/patients")
@@ -21,13 +20,12 @@ import java.util.List;
 public class PatientController {
     private final PatientService service;
 
-
     @Operation(summary = "Get all patients", description = "Returns a list of all patients")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Patients retrieved successfully")
     })
     @GetMapping
-    public Page<Patient> getAllPatients(Pageable pageable) {
+    public PageDto<PatientDto> getAllPatients(Pageable pageable) {
         return service.getAllPatients(pageable);
     }
 
