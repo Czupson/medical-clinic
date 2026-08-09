@@ -4,7 +4,6 @@ import com.Czupson.medical_clinic.dto.PageDto;
 import com.Czupson.medical_clinic.dto.patient.CreatePatientCommand;
 import com.Czupson.medical_clinic.dto.patient.PatientDto;
 import com.Czupson.medical_clinic.dto.patient.UpdatePatientCommand;
-import com.Czupson.medical_clinic.model.Patient;
 import com.Czupson.medical_clinic.service.PatientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -35,7 +34,7 @@ public class PatientController {
             @ApiResponse(responseCode = "404", description = "Patient not found")
     })
     @GetMapping("/{id}")
-    public Patient getPatient(@PathVariable Long id) {
+    public PatientDto getPatient(@PathVariable Long id) {
         return service.getPatient(id);
     }
 
@@ -47,7 +46,7 @@ public class PatientController {
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Patient addPatient(@RequestBody CreatePatientCommand command) {
+    public PatientDto addPatient(@RequestBody CreatePatientCommand command) {
         return service.addPatient(command);
     }
 
@@ -59,7 +58,8 @@ public class PatientController {
             @ApiResponse(responseCode = "409", description = "Patient already exists")
     })
     @PutMapping("/{id}")
-    public Patient updatePatient(@PathVariable Long id, @RequestBody UpdatePatientCommand command) {
+    public PatientDto updatePatient(@PathVariable Long id,
+                                    @RequestBody UpdatePatientCommand command) {
         return service.updatePatient(id, command);
     }
 

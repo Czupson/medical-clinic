@@ -4,7 +4,6 @@ import com.Czupson.medical_clinic.dto.PageDto;
 import com.Czupson.medical_clinic.dto.doctor.CreateDoctorCommand;
 import com.Czupson.medical_clinic.dto.doctor.DoctorDto;
 import com.Czupson.medical_clinic.dto.doctor.UpdateDoctorCommand;
-import com.Czupson.medical_clinic.model.Doctor;
 import com.Czupson.medical_clinic.service.DoctorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -35,7 +34,7 @@ public class DoctorController {
             @ApiResponse(responseCode = "404", description = "Doctor not found")
     })
     @GetMapping("/{id}")
-    public Doctor getDoctor(@PathVariable Long id) {
+    public DoctorDto getDoctor(@PathVariable Long id) {
         return doctorService.getDoctor(id);
     }
 
@@ -48,7 +47,7 @@ public class DoctorController {
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Doctor addDoctor(@RequestBody CreateDoctorCommand command) {
+    public DoctorDto addDoctor(@RequestBody CreateDoctorCommand command) {
         return doctorService.addDoctor(command);
     }
 
@@ -60,7 +59,7 @@ public class DoctorController {
             @ApiResponse(responseCode = "409", description = "Doctor already exists")
     })
     @PutMapping("/{id}")
-    public Doctor updateDoctor(@PathVariable Long id,
+    public DoctorDto updateDoctor(@PathVariable Long id,
                                @RequestBody UpdateDoctorCommand command) {
         return doctorService.updateDoctor(id, command);
     }

@@ -36,11 +36,12 @@ public class DoctorService {
                         .map(doctorMapper::toDto)
         );
     }
-    public Doctor getDoctor(Long id) {
-        return findDoctor(id);
+
+    public DoctorDto getDoctor(Long id) {
+        return doctorMapper.toDto(findDoctor(id));
     }
 
-    public Doctor addDoctor(CreateDoctorCommand command) {
+    public DoctorDto addDoctor(CreateDoctorCommand command) {
         User user = findUser(command.userId());
         validateDoctorDoesNotExist(user);
         Set<Facility> facilities = findFacilitiesOrThrow(command.facilityIds());
@@ -48,16 +49,16 @@ public class DoctorService {
         doctor.setUser(user);
         doctor.setFacilities(facilities);
         doctor.validate();
-        return doctorRepository.save(doctor);
+        return doctorMapper.toDto(doctorRepository.save(doctor));
     }
 
-    public Doctor updateDoctor(Long id, UpdateDoctorCommand command) {
+    public DoctorDto updateDoctor(Long id, UpdateDoctorCommand command) {
         Doctor doctor = findDoctor(id);
         Set<Facility> facilities = findFacilitiesOrThrow(command.facilityIds());
         Doctor updatedDoctor = doctorMapper.toDoctor(command);
         updatedDoctor.setFacilities(facilities);
         doctor.update(updatedDoctor);
-        return doctorRepository.save(doctor);
+        return doctorMapper.toDto(doctorRepository.save(doctor));
     }
 
     public void deleteDoctor(Long id) {

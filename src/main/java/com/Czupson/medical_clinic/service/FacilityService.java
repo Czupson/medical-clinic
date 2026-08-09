@@ -26,23 +26,23 @@ public class FacilityService {
         );
     }
 
-    public Facility getFacility(Long id) {
-        return findFacility(id);
+    public FacilityDto getFacility(Long id) {
+        return facilityMapper.toDto(findFacility(id));
     }
 
-    public Facility addFacility(CreateFacilityCommand command) {
+    public FacilityDto addFacility(CreateFacilityCommand command) {
         validateFacilityDoesNotExist(command.name());
         Facility facility = facilityMapper.toFacility(command);
         facility.validate();
-        return facilityRepository.save(facility);
+        return facilityMapper.toDto(facilityRepository.save(facility));
     }
 
-    public Facility updateFacility(Long id, UpdateFacilityCommand command) {
+    public FacilityDto updateFacility(Long id, UpdateFacilityCommand command) {
         Facility facility = findFacility(id);
         validateFacilityNameUniqueness(id, command.name());
         Facility updatedFacility = facilityMapper.toFacility(command);
         facility.update(updatedFacility);
-        return facilityRepository.save(facility);
+        return facilityMapper.toDto(facilityRepository.save(facility));
     }
 
     public void deleteFacility(Long id) {

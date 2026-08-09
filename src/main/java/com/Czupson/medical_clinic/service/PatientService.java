@@ -23,35 +23,34 @@ public class PatientService {
     private final PatientRepository repository;
     private final PatientMapper mapper;
     private final UserRepository userRepository;
-    private final PatientMapper patientMapper;
 
     public PageDto<PatientDto> getAllPatients(Pageable pageable) {
         return PageDto.from(
                 repository.findAll(pageable)
-                        .map(patientMapper::toDto)
+                        .map(mapper::toDto)
         );
     }
 
-    public Patient getPatient(Long id) {
-        return findPatient(id);
+    public PatientDto getPatient(Long id) {
+        return mapper.toDto(findPatient(id));
     }
 
-    public Patient addPatient(CreatePatientCommand command) {
+    public PatientDto addPatient(CreatePatientCommand command) {
         User user = findUser(command.userId());
         validatePatientDoesNotExist(user);
         Patient patient = mapper.toPatient(command);
         patient.setUser(user);
         patient.validate();
-        return repository.save(patient);
+        return mapper.toDto(repository.save(patient));
     }
 
-    public Patient updatePatient(Long id, UpdatePatientCommand command) {
+    public PatientDto updatePatient(Long id, UpdatePatientCommand command) {
         Patient patient = findPatient(id);
         Patient updatedPatient = mapper.toPatient(command);
         updatedPatient.setId(patient.getId());
         updatedPatient.setUser(patient.getUser());
         patient.update(updatedPatient);
-        return repository.save(patient);
+        return mapper.toDto(repository.save(patient));
     }
 
     public void deletePatient(Long id) {

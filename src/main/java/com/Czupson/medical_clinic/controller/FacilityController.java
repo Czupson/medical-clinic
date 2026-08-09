@@ -4,7 +4,6 @@ import com.Czupson.medical_clinic.dto.PageDto;
 import com.Czupson.medical_clinic.dto.facility.CreateFacilityCommand;
 import com.Czupson.medical_clinic.dto.facility.FacilityDto;
 import com.Czupson.medical_clinic.dto.facility.UpdateFacilityCommand;
-import com.Czupson.medical_clinic.model.Facility;
 import com.Czupson.medical_clinic.service.FacilityService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -35,7 +34,7 @@ public class FacilityController {
             @ApiResponse(responseCode = "404", description = "Facility not found")
     })
     @GetMapping("/{id}")
-    public Facility getFacility(@PathVariable Long id) {
+    public FacilityDto getFacility(@PathVariable Long id) {
         return facilityService.getFacility(id);
     }
 
@@ -47,7 +46,7 @@ public class FacilityController {
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Facility addFacility(@RequestBody CreateFacilityCommand command) {
+    public FacilityDto addFacility(@RequestBody CreateFacilityCommand command) {
         return facilityService.addFacility(command);
     }
 
@@ -59,7 +58,7 @@ public class FacilityController {
             @ApiResponse(responseCode = "409", description = "Facility already exists")
     })
     @PutMapping("/{id}")
-    public Facility updateFacility(@PathVariable Long id,
+    public FacilityDto updateFacility(@PathVariable Long id,
                                    @RequestBody UpdateFacilityCommand command) {
         return facilityService.updateFacility(id, command);
     }

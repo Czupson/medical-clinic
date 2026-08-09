@@ -4,7 +4,6 @@ import com.Czupson.medical_clinic.dto.PageDto;
 import com.Czupson.medical_clinic.dto.appointment.AppointmentDto;
 import com.Czupson.medical_clinic.dto.appointment.BookAppointmentCommand;
 import com.Czupson.medical_clinic.dto.appointment.CreateAppointmentCommand;
-import com.Czupson.medical_clinic.model.Appointment;
 import com.Czupson.medical_clinic.service.AppointmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -37,7 +36,7 @@ public class AppointmentController {
             @ApiResponse(responseCode = "404", description = "Appointment not found")
     })
     @GetMapping("/{id}")
-    public Appointment getAppointment(@PathVariable Long id) {
+    public AppointmentDto getAppointment(@PathVariable Long id) {
         return appointmentService.getAppointment(id);
     }
 
@@ -49,7 +48,7 @@ public class AppointmentController {
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Appointment addAppointment(@RequestBody CreateAppointmentCommand command) {
+    public AppointmentDto addAppointment(@RequestBody CreateAppointmentCommand command) {
         return appointmentService.addAppointment(command);
     }
 
@@ -61,7 +60,7 @@ public class AppointmentController {
             @ApiResponse(responseCode = "409", description = "Appointment cannot be booked")
     })
     @PatchMapping("/{id}/book")
-    public Appointment bookAppointment(
+    public AppointmentDto bookAppointment(
             @PathVariable Long id,
             @RequestBody BookAppointmentCommand command) {
         return appointmentService.bookAppointment(id, command);
@@ -84,7 +83,7 @@ public class AppointmentController {
             @ApiResponse(responseCode = "404", description = "Patient not found")
     })
     @GetMapping("/patient/{patientId}")
-    public List<Appointment> getPatientAppointments(
+    public List<AppointmentDto> getPatientAppointments(
             @PathVariable Long patientId) {
         return appointmentService.getPatientAppointments(patientId);
     }

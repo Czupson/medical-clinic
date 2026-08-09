@@ -36,11 +36,11 @@ public class AppointmentService {
         );
     }
 
-    public Appointment getAppointment(Long id) {
-        return findAppointment(id);
+    public AppointmentDto getAppointment(Long id) {
+        return appointmentMapper.toDto(findAppointment(id));
     }
 
-    public Appointment addAppointment(CreateAppointmentCommand command) {
+    public AppointmentDto addAppointment(CreateAppointmentCommand command) {
         Doctor doctor = findDoctor(command.doctorId());
         validateAppointmentTimeAvailability(
                 doctor,
@@ -51,10 +51,12 @@ public class AppointmentService {
         appointment.setDoctor(doctor);
         appointment.setPatient(null);
         appointment.validate();
-        return appointmentRepository.save(appointment);
+        return appointmentMapper.toDto(
+                appointmentRepository.save(appointment)
+        );
     }
 
-    public Appointment bookAppointment(Long appointmentId,
+    public AppointmentDto bookAppointment(Long appointmentId,
                                        BookAppointmentCommand command) {
         Appointment appointment = findAppointment(appointmentId);
         validateAppointmentIsAvailable(appointment);
@@ -66,16 +68,21 @@ public class AppointmentService {
                 appointment.getAppointmentEnd()
         );
         appointment.setPatient(patient);
-        return appointmentRepository.save(appointment);
+        return appointmentMapper.toDto(
+                appointmentRepository.save(appointment)
+        );
     }
 
     public void deleteAppointment(Long id) {
         appointmentRepository.delete(findAppointment(id));
     }
 
-    public List<Appointment> getPatientAppointments(Long patientId) {
+    public List<AppointmentDto> getPatientAppointments(Long patientId) {
         Patient patient = findPatient(patientId);
-        return appointmentRepository.findByPatient(patient);
+        return appointmentRepository.findByPatient(patient)
+                .stream()
+                .map(appointmentMapper::toDto)
+                .toList();
     }
 
     private Appointment findAppointment(Long id) {

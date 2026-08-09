@@ -25,8 +25,8 @@ public class UserService {
         );
     }
 
-    public User getUser(Long id) {
-        return findUser(id);
+    public UserDto getUser(Long id) {
+        return userMapper.toDto(findUser(id));
     }
 
     public User addUser(User user) {

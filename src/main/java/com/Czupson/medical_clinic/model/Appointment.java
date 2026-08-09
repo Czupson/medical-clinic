@@ -86,4 +86,20 @@ public class Appointment {
                     fieldName + " must be an exact quarter hour");
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Appointment appointment)) {
+            return false;
+        }
+        return id != null && id.equals(appointment.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
