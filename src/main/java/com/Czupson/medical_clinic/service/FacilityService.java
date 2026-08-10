@@ -12,6 +12,7 @@ import com.Czupson.medical_clinic.repository.FacilityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +20,7 @@ public class FacilityService {
     private final FacilityRepository facilityRepository;
     private final FacilityMapper facilityMapper;
 
+    @Transactional(readOnly = true)
     public PageDto<FacilityDto> getAllFacilities(Pageable pageable) {
         return PageDto.from(
                 facilityRepository.findAll(pageable)
@@ -26,10 +28,12 @@ public class FacilityService {
         );
     }
 
+    @Transactional(readOnly = true)
     public FacilityDto getFacility(Long id) {
         return facilityMapper.toDto(findFacility(id));
     }
 
+    @Transactional
     public FacilityDto addFacility(CreateFacilityCommand command) {
         validateFacilityDoesNotExist(command.name());
         Facility facility = facilityMapper.toFacility(command);
@@ -37,6 +41,7 @@ public class FacilityService {
         return facilityMapper.toDto(facilityRepository.save(facility));
     }
 
+    @Transactional
     public FacilityDto updateFacility(Long id, UpdateFacilityCommand command) {
         Facility facility = findFacility(id);
         validateFacilityNameUniqueness(id, command.name());
@@ -45,6 +50,7 @@ public class FacilityService {
         return facilityMapper.toDto(facilityRepository.save(facility));
     }
 
+    @Transactional
     public void deleteFacility(Long id) {
         facilityRepository.delete(findFacility(id));
     }

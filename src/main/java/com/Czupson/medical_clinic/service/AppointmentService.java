@@ -17,6 +17,7 @@ import com.Czupson.medical_clinic.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,6 +30,7 @@ public class AppointmentService {
     private final PatientRepository patientRepository;
     private final AppointmentMapper appointmentMapper;
 
+    @Transactional(readOnly = true)
     public PageDto<AppointmentDto> getAllAppointments(Pageable pageable) {
         return PageDto.from(
                 appointmentRepository.findAll(pageable)
@@ -36,10 +38,12 @@ public class AppointmentService {
         );
     }
 
+    @Transactional(readOnly = true)
     public AppointmentDto getAppointment(Long id) {
         return appointmentMapper.toDto(findAppointment(id));
     }
 
+    @Transactional
     public AppointmentDto addAppointment(CreateAppointmentCommand command) {
         Doctor doctor = findDoctor(command.doctorId());
         validateAppointmentTimeAvailability(
@@ -56,6 +60,7 @@ public class AppointmentService {
         );
     }
 
+    @Transactional
     public AppointmentDto bookAppointment(Long appointmentId,
                                        BookAppointmentCommand command) {
         Appointment appointment = findAppointment(appointmentId);
@@ -73,10 +78,12 @@ public class AppointmentService {
         );
     }
 
+    @Transactional
     public void deleteAppointment(Long id) {
         appointmentRepository.delete(findAppointment(id));
     }
 
+    @Transactional(readOnly = true)
     public List<AppointmentDto> getPatientAppointments(Long patientId) {
         Patient patient = findPatient(patientId);
         return appointmentRepository.findByPatient(patient)

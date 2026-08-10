@@ -18,6 +18,7 @@ import com.Czupson.medical_clinic.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -30,6 +31,7 @@ public class DoctorService {
     private final FacilityRepository facilityRepository;
     private final DoctorMapper doctorMapper;
 
+    @Transactional(readOnly = true)
     public PageDto<DoctorDto> getAllDoctors(Pageable pageable) {
         return PageDto.from(
                 doctorRepository.findAll(pageable)
@@ -37,10 +39,12 @@ public class DoctorService {
         );
     }
 
+    @Transactional(readOnly = true)
     public DoctorDto getDoctor(Long id) {
         return doctorMapper.toDto(findDoctor(id));
     }
 
+    @Transactional
     public DoctorDto addDoctor(CreateDoctorCommand command) {
         User user = findUser(command.userId());
         validateDoctorDoesNotExist(user);
@@ -52,6 +56,7 @@ public class DoctorService {
         return doctorMapper.toDto(doctorRepository.save(doctor));
     }
 
+    @Transactional
     public DoctorDto updateDoctor(Long id, UpdateDoctorCommand command) {
         Doctor doctor = findDoctor(id);
         Set<Facility> facilities = findFacilitiesOrThrow(command.facilityIds());
@@ -61,6 +66,7 @@ public class DoctorService {
         return doctorMapper.toDto(doctorRepository.save(doctor));
     }
 
+    @Transactional
     public void deleteDoctor(Long id) {
         doctorRepository.delete(findDoctor(id));
     }

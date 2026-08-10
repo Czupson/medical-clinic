@@ -10,6 +10,7 @@ import com.Czupson.medical_clinic.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
@@ -18,6 +19,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
+    @Transactional(readOnly = true)
     public PageDto<UserDto> getAllUsers(Pageable pageable) {
         return PageDto.from(
                 userRepository.findAll(pageable)
@@ -25,16 +27,19 @@ public class UserService {
         );
     }
 
+    @Transactional(readOnly = true)
     public UserDto getUser(Long id) {
         return userMapper.toDto(findUser(id));
     }
 
+    @Transactional
     public User addUser(User user) {
         user.validate();
         validateUserDoesNotExist(user.getEmail());
         return userRepository.save(user);
     }
 
+    @Transactional
     public User updateUser(Long id, User updatedUser) {
         User user = findUser(id);
         validateUserEmailUniqueness(id, updatedUser.getEmail());
@@ -42,10 +47,12 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @Transactional
     public void deleteUser(Long id) {
         userRepository.delete(findUser(id));
     }
 
+    @Transactional
     public void changePassword(Long id, String newPassword) {
         User user = findUser(id);
         user.changePassword(newPassword);
