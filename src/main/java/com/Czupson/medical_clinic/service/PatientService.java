@@ -13,11 +13,12 @@ import com.Czupson.medical_clinic.model.User;
 import com.Czupson.medical_clinic.repository.PatientRepository;
 import com.Czupson.medical_clinic.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PatientService {
@@ -40,41 +41,63 @@ public class PatientService {
 
     @Transactional
     public PatientDto addPatient(CreatePatientCommand command) {
+        log.info("Creating patient for userId={}", command.userId());
         User user = findUser(command.userId());
         validatePatientDoesNotExist(user);
         Patient patient = mapper.toPatient(command);
         patient.setUser(user);
         patient.validate();
-        return mapper.toDto(repository.save(patient));
+        Patient savedPatient = repository.save(patient);
+        log.info(
+                "Patient created: id={}, userId={}",
+                savedPatient.getId(),
+                user.getId()
+        );
+        return mapper.toDto(savedPatient);
     }
 
     @Transactional
     public PatientDto updatePatient(Long id, UpdatePatientCommand command) {
+        log.info("Updating patient: id={}", id);
         Patient patient = findPatient(id);
         Patient updatedPatient = mapper.toPatient(command);
         updatedPatient.setId(patient.getId());
         updatedPatient.setUser(patient.getUser());
         patient.update(updatedPatient);
-        return mapper.toDto(repository.save(patient));
+        Patient savedPatient = repository.save(patient);
+        log.info("Patient updated: id={}", savedPatient.getId());
+        return mapper.toDto(savedPatient);
     }
 
     @Transactional
     public void deletePatient(Long id) {
+        log.info("Deleting patient: id={}", id);
         repository.delete(findPatient(id));
+        log.info("Patient deleted: id={}", id);
     }
 
     private Patient findPatient(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new PatientNotFoundException(id));
+                .orElseThrow(() -> {
+                    log.warn("Patient not found: id={}", id);
+                    return new PatientNotFoundException(id);
+                });
     }
 
     private User findUser(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
+                .orElseThrow(() -> {
+                    log.warn("User not found while creating patient: userId={}", id);
+                    return new UserNotFoundException(id);
+                });
     }
 
     private void validatePatientDoesNotExist(User user) {
         if (user.getPatient() != null) {
+            log.warn(
+                    "Attempt to create another patient for userId={}",
+                    user.getId()
+            );
             throw new PatientAlreadyExistsException(user.getEmail());
         }
     }
