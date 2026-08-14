@@ -16,6 +16,7 @@ import com.Czupson.medical_clinic.repository.DoctorRepository;
 import com.Czupson.medical_clinic.repository.FacilityRepository;
 import com.Czupson.medical_clinic.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashSet;
 import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DoctorService {
@@ -46,6 +48,11 @@ public class DoctorService {
 
     @Transactional
     public DoctorDto addDoctor(CreateDoctorCommand command) {
+        log.info(
+                "Creating doctor: userId={}, facilityIds={}",
+                command.userId(),
+                command.facilityIds()
+        );
         User user = findUser(command.userId());
         validateDoctorDoesNotExist(user);
         Set<Facility> facilities = findFacilitiesOrThrow(command.facilityIds());
@@ -53,36 +60,60 @@ public class DoctorService {
         doctor.setUser(user);
         doctor.setFacilities(facilities);
         doctor.validate();
-        return doctorMapper.toDto(doctorRepository.save(doctor));
+        Doctor savedDoctor = doctorRepository.save(doctor);
+        log.info(
+                "Doctor created: id={}, userId={}",
+                savedDoctor.getId(),
+                user.getId()
+        );
+        return doctorMapper.toDto(savedDoctor);
     }
 
     @Transactional
     public DoctorDto updateDoctor(Long id, UpdateDoctorCommand command) {
+        log.info("Updating doctor: id={}", id);
         Doctor doctor = findDoctor(id);
         Set<Facility> facilities = findFacilitiesOrThrow(command.facilityIds());
         Doctor updatedDoctor = doctorMapper.toDoctor(command);
         updatedDoctor.setFacilities(facilities);
         doctor.update(updatedDoctor);
-        return doctorMapper.toDto(doctorRepository.save(doctor));
+        Doctor savedDoctor = doctorRepository.save(doctor);
+        log.info("Doctor updated: id={}", savedDoctor.getId());
+        return doctorMapper.toDto(savedDoctor);
     }
 
     @Transactional
     public void deleteDoctor(Long id) {
+        log.info("Deleting doctor: id={}", id);
         doctorRepository.delete(findDoctor(id));
+        log.info("Doctor deleted: id={}", id);
     }
 
     private Doctor findDoctor(Long id) {
         return doctorRepository.findById(id)
-                .orElseThrow(() -> new DoctorNotFoundException(id));
+                .orElseThrow(() -> {
+                    log.warn("Doctor not found: id={}", id);
+                    return new DoctorNotFoundException(id);
+                });
     }
 
     private User findUser(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
+                .orElseThrow(() -> {
+                    log.warn(
+                            "User not found while creating doctor: userId={}",
+                            userId
+                    );
+                    return new UserNotFoundException(userId);
+                });
     }
 
     private void validateDoctorDoesNotExist(User user) {
         if (doctorRepository.existsByUser(user)) {
+            log.warn(
+                    "Attempt to create another doctor for userId={}",
+                    user.getId()
+            );
             throw new DoctorAlreadyExistsException(user.getId());
         }
     }
@@ -92,6 +123,10 @@ public class DoctorService {
                 facilityRepository.findAllById(facilityIds)
         );
         if (facilities.size() != facilityIds.size()) {
+            log.warn(
+                    "Some facilities were not found: requestedFacilityIds={}",
+                    facilityIds
+            );
             throw new FacilitiesNotFoundException();
         }
         return facilities;
