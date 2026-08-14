@@ -15,6 +15,7 @@ import com.Czupson.medical_clinic.repository.AppointmentRepository;
 import com.Czupson.medical_clinic.repository.DoctorRepository;
 import com.Czupson.medical_clinic.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AppointmentService {
@@ -45,6 +47,12 @@ public class AppointmentService {
 
     @Transactional
     public AppointmentDto addAppointment(CreateAppointmentCommand command) {
+        log.info(
+                "Creating appointment: doctorId={}, start={}, end={}",
+                command.doctorId(),
+                command.appointmentStart(),
+                command.appointmentEnd()
+        );
         Doctor doctor = findDoctor(command.doctorId());
         validateAppointmentTimeAvailability(
                 doctor,
@@ -55,14 +63,26 @@ public class AppointmentService {
         appointment.setDoctor(doctor);
         appointment.setPatient(null);
         appointment.validate();
-        return appointmentMapper.toDto(
-                appointmentRepository.save(appointment)
+        Appointment savedAppointment = appointmentRepository.save(appointment);
+        log.info(
+                "Appointment created: id={}, doctorId={}, start={}, end={}",
+                savedAppointment.getId(),
+                doctor.getId(),
+                savedAppointment.getAppointmentStart(),
+                savedAppointment.getAppointmentEnd()
         );
+        return appointmentMapper.toDto(savedAppointment);
     }
 
     @Transactional
-    public AppointmentDto bookAppointment(Long appointmentId,
-                                       BookAppointmentCommand command) {
+    public AppointmentDto bookAppointment(
+            Long appointmentId,
+            BookAppointmentCommand command) {
+        log.info(
+                "Booking appointment: appointmentId={}, patientId={}",
+                appointmentId,
+                command.patientId()
+        );
         Appointment appointment = findAppointment(appointmentId);
         validateAppointmentIsAvailable(appointment);
         validateAppointmentIsInFuture(appointment);
@@ -73,14 +93,20 @@ public class AppointmentService {
                 appointment.getAppointmentEnd()
         );
         appointment.setPatient(patient);
-        return appointmentMapper.toDto(
-                appointmentRepository.save(appointment)
+        Appointment savedAppointment = appointmentRepository.save(appointment);
+        log.info(
+                "Appointment booked: appointmentId={}, patientId={}",
+                savedAppointment.getId(),
+                patient.getId()
         );
+        return appointmentMapper.toDto(savedAppointment);
     }
 
     @Transactional
     public void deleteAppointment(Long id) {
+        log.info("Deleting appointment: id={}", id);
         appointmentRepository.delete(findAppointment(id));
+        log.info("Appointment deleted: id={}", id);
     }
 
     @Transactional(readOnly = true)
@@ -94,7 +120,10 @@ public class AppointmentService {
 
     private Appointment findAppointment(Long id) {
         return appointmentRepository.findById(id)
-                .orElseThrow(() -> new AppointmentNotFoundException(id));
+                .orElseThrow(() -> {
+                    log.warn("Appointment not found: id={}", id);
+                    return new AppointmentNotFoundException(id);
+                });
     }
 
     private Doctor findDoctor(Long id) {
@@ -116,18 +145,34 @@ public class AppointmentService {
                         doctor,
                         appointmentEnd,
                         appointmentStart)) {
+            log.warn(
+                    "Appointment conflict: doctorId={}, start={}, end={}",
+                    doctor.getId(),
+                    appointmentStart,
+                    appointmentEnd
+            );
             throw new AppointmentAlreadyExistsException();
         }
     }
 
     private void validateAppointmentIsAvailable(Appointment appointment) {
         if (appointment.getPatient() != null) {
+            log.warn(
+                    "Attempt to book already booked appointment: appointmentId={}, currentPatientId={}",
+                    appointment.getId(),
+                    appointment.getPatient().getId()
+            );
             throw new AppointmentAlreadyBookedException();
         }
     }
 
     private void validateAppointmentIsInFuture(Appointment appointment) {
         if (appointment.getAppointmentStart().isBefore(LocalDateTime.now())) {
+            log.warn(
+                    "Attempt to book appointment in the past: appointmentId={}, start={}",
+                    appointment.getId(),
+                    appointment.getAppointmentStart()
+            );
             throw new AppointmentDataValidationException(
                     "Cannot book an appointment in the past");
         }
@@ -143,6 +188,12 @@ public class AppointmentService {
                         patient,
                         appointmentEnd,
                         appointmentStart)) {
+            log.warn(
+                    "Patient appointment conflict: patientId={}, start={}, end={}",
+                    patient.getId(),
+                    appointmentStart,
+                    appointmentEnd
+            );
             throw new PatientAppointmentConflictException();
         }
     }
