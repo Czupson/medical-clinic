@@ -10,10 +10,12 @@ import com.Czupson.medical_clinic.mapper.FacilityMapper;
 import com.Czupson.medical_clinic.model.Facility;
 import com.Czupson.medical_clinic.repository.FacilityRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FacilityService {
@@ -35,33 +37,48 @@ public class FacilityService {
 
     @Transactional
     public FacilityDto addFacility(CreateFacilityCommand command) {
+        log.info("Creating facility");
         validateFacilityDoesNotExist(command.name());
         Facility facility = facilityMapper.toFacility(command);
         facility.validate();
-        return facilityMapper.toDto(facilityRepository.save(facility));
+        Facility savedFacility = facilityRepository.save(facility);
+        log.info(
+                "Facility created: id={}",
+                savedFacility.getId()
+        );
+        return facilityMapper.toDto(savedFacility);
     }
 
     @Transactional
     public FacilityDto updateFacility(Long id, UpdateFacilityCommand command) {
+        log.info("Updating facility: id={}", id);
         Facility facility = findFacility(id);
         validateFacilityNameUniqueness(id, command.name());
         Facility updatedFacility = facilityMapper.toFacility(command);
         facility.update(updatedFacility);
-        return facilityMapper.toDto(facilityRepository.save(facility));
+        Facility savedFacility = facilityRepository.save(facility);
+        log.info("Facility updated: id={}", savedFacility.getId());
+        return facilityMapper.toDto(savedFacility);
     }
 
     @Transactional
     public void deleteFacility(Long id) {
+        log.info("Deleting facility: id={}", id);
         facilityRepository.delete(findFacility(id));
+        log.info("Facility deleted: id={}", id);
     }
 
     private Facility findFacility(Long id) {
         return facilityRepository.findById(id)
-                .orElseThrow(() -> new FacilityNotFoundException(id));
+                .orElseThrow(() -> {
+                    log.warn("Facility not found: id={}", id);
+                    return new FacilityNotFoundException(id);
+                });
     }
 
     private void validateFacilityDoesNotExist(String name) {
         if (facilityRepository.existsByName(name)) {
+            log.warn("Attempt to create facility that already exists");
             throw new FacilityAlreadyExistsException(name);
         }
     }
@@ -70,6 +87,10 @@ public class FacilityService {
         facilityRepository.findByName(name)
                 .ifPresent(foundFacility -> {
                     if (!foundFacility.getId().equals(facilityId)) {
+                        log.warn(
+                                "Attempt to assign existing name to facility: facilityId={}",
+                                facilityId
+                        );
                         throw new FacilityAlreadyExistsException(name);
                     }
                 });
