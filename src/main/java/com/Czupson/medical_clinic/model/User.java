@@ -25,7 +25,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @OneToOne(mappedBy = "user")
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Patient patient;
 
     public void validate() {
@@ -62,5 +62,21 @@ public class User {
 
         this.email = updatedUser.getEmail();
         this.password = updatedUser.getPassword();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof User user)) {
+            return false;
+        }
+        return id != null && id.equals(user.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

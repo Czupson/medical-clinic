@@ -43,6 +43,9 @@ public class Doctor {
     )
     private Set<Facility> facilities = new HashSet<>();
 
+    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Appointment> appointments = new HashSet<>();
+
     public void update(Doctor updatedDoctor) {
         updatedDoctor.validate();
         this.firstName = updatedDoctor.getFirstName();
@@ -68,5 +71,21 @@ public class Doctor {
             throw new DoctorDataValidationException(
                     "Doctor must be assigned to at least one facility");
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Doctor doctor)) {
+            return false;
+        }
+        return id != null && id.equals(doctor.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

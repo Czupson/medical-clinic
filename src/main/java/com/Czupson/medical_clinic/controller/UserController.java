@@ -1,8 +1,10 @@
 package com.Czupson.medical_clinic.controller;
 
+import com.Czupson.medical_clinic.dto.PageDto;
 import com.Czupson.medical_clinic.dto.patient.ChangePasswordCommand;
 import com.Czupson.medical_clinic.dto.user.CreateUserCommand;
 import com.Czupson.medical_clinic.dto.user.UpdateUserCommand;
+import com.Czupson.medical_clinic.dto.user.UserDto;
 import com.Czupson.medical_clinic.mapper.UserMapper;
 import com.Czupson.medical_clinic.model.User;
 import com.Czupson.medical_clinic.service.UserService;
@@ -10,16 +12,17 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import org.springframework.data.domain.Pageable;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
-
     private final UserService service;
     private final UserMapper mapper;
 
@@ -28,8 +31,9 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Users retrieved successfully")
     })
     @GetMapping
-    public List<User> getAllUsers() {
-        return service.getAllUsers();
+    public PageDto<UserDto> getAllUsers(Pageable pageable) {
+        log.info("GET /api/users - page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
+        return service.getAllUsers(pageable);
     }
 
     @Operation(summary = "Get user by id", description = "Returns user with the specified id")
@@ -38,7 +42,8 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "User not found")
     })
     @GetMapping("/{id}")
-    public User getUser(@PathVariable Long id) {
+    public UserDto getUser(@PathVariable Long id) {
+        log.info("GET /api/users/{} - retrieving user", id);
         return service.getUser(id);
     }
 
@@ -51,6 +56,7 @@ public class UserController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public User addUser(@RequestBody CreateUserCommand command) {
+        log.info("POST /api/users - creating user: email={}", command.email());
         return service.addUser(mapper.toUser(command));
     }
 
@@ -64,6 +70,7 @@ public class UserController {
     @PutMapping("/{id}")
     public User updateUser(@PathVariable Long id,
                            @RequestBody UpdateUserCommand command) {
+        log.info("PUT /api/users/{} - updating user: email={}", id, command.email());
         return service.updateUser(id, mapper.toUser(command));
     }
 
@@ -75,6 +82,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable Long id) {
+        log.info("DELETE /api/users/{} - deleting user", id);
         service.deleteUser(id);
     }
 
@@ -87,6 +95,7 @@ public class UserController {
     @PatchMapping("/{id}/password")
     public void changePassword(@PathVariable Long id,
                                @RequestBody ChangePasswordCommand command) {
+        log.info("PATCH /api/users/{}/password - changing password", id);
         service.changePassword(id, command.newPassword());
     }
 }

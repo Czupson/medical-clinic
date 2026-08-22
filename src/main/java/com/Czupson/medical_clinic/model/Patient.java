@@ -9,6 +9,8 @@ import lombok.Setter;
 import jakarta.persistence.Id;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "patients")
@@ -39,6 +41,9 @@ public class Patient {
     @OneToOne
     @JoinColumn(name = "user_id", unique = true, nullable = false)
     private User user;
+
+    @OneToMany(mappedBy = "patient")
+    private Set<Appointment> appointments = new HashSet<>();
 
     public void update(Patient updatedPatient) {
         updatedPatient.validate();
@@ -86,5 +91,21 @@ public class Patient {
         if (birthday.isAfter(LocalDate.now())) {
             throw new PatientDataValidationException("Birthday cannot be in the future");
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Patient patient)) {
+            return false;
+        }
+        return id != null && id.equals(patient.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

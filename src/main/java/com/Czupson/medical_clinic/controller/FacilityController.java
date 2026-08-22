@@ -1,47 +1,83 @@
 package com.Czupson.medical_clinic.controller;
 
+import com.Czupson.medical_clinic.dto.PageDto;
 import com.Czupson.medical_clinic.dto.facility.CreateFacilityCommand;
+import com.Czupson.medical_clinic.dto.facility.FacilityDto;
 import com.Czupson.medical_clinic.dto.facility.UpdateFacilityCommand;
-import com.Czupson.medical_clinic.model.Facility;
 import com.Czupson.medical_clinic.service.FacilityService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
+@Slf4j
 @RestController
 @RequestMapping("/api/facilities")
 @RequiredArgsConstructor
 public class FacilityController {
-
     private final FacilityService facilityService;
 
+    @Operation(summary = "Get all facilities", description = "Returns a paginated list of all facilities")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Facilities retrieved successfully")
+    })
     @GetMapping
-    public List<Facility> getAllFacilities() {
-        return facilityService.getAllFacilities();
+    public PageDto<FacilityDto> getAllFacilities(Pageable pageable) {
+        log.info("GET /api/facilities - page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
+        return facilityService.getAllFacilities(pageable);
     }
 
-    @GetMapping("/{name}")
-    public Facility getFacility(@PathVariable String name) {
-        return facilityService.getFacility(name);
+    @Operation(summary = "Get facility by id", description = "Returns facility with the specified id")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Facility found"),
+            @ApiResponse(responseCode = "404", description = "Facility not found")
+    })
+    @GetMapping("/{id}")
+    public FacilityDto getFacility(@PathVariable Long id) {
+        log.info("GET /api/facilities/{} - retrieving facility", id);
+        return facilityService.getFacility(id);
     }
 
+    @Operation(summary = "Create facility", description = "Creates a new facility")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Facility created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid facility data"),
+            @ApiResponse(responseCode = "409", description = "Facility already exists")
+    })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Facility addFacility(@RequestBody CreateFacilityCommand command) {
+    public FacilityDto addFacility(@RequestBody CreateFacilityCommand command) {
+        log.info("POST /api/facilities - creating facility: name={}, city={}, postalCode={}, street={}, buildingNumber={}", command.name(), command.city(), command.postalCode(), command.street(), command.buildingNumber());
         return facilityService.addFacility(command);
     }
 
-    @PutMapping("/{name}")
-    public Facility updateFacility(@PathVariable String name,
+    @Operation(summary = "Update facility", description = "Updates an existing facility")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Facility updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid facility data"),
+            @ApiResponse(responseCode = "404", description = "Facility not found"),
+            @ApiResponse(responseCode = "409", description = "Facility already exists")
+    })
+    @PutMapping("/{id}")
+    public FacilityDto updateFacility(@PathVariable Long id,
                                    @RequestBody UpdateFacilityCommand command) {
-        return facilityService.updateFacility(name, command);
+        log.info("PUT /api/facilities/{} - updating facility: name={}, city={}, postalCode={}, street={}, buildingNumber={}", id, command.name(), command.city(), command.postalCode(), command.street(), command.buildingNumber());
+        return facilityService.updateFacility(id, command);
     }
 
-    @DeleteMapping("/{name}")
+    @Operation(summary = "Delete facility", description = "Deletes facility with the specified id")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Facility deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Facility not found")
+    })
+    @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteFacility(@PathVariable String name) {
-        facilityService.deleteFacility(name);
+    public void deleteFacility(@PathVariable Long id) {
+        log.info("DELETE /api/facilities/{} - deleting facility", id);
+        facilityService.deleteFacility(id);
     }
 }
