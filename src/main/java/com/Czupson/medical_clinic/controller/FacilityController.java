@@ -9,10 +9,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/facilities")
 @RequiredArgsConstructor
@@ -25,6 +27,7 @@ public class FacilityController {
     })
     @GetMapping
     public PageDto<FacilityDto> getAllFacilities(Pageable pageable) {
+        log.info("GET /api/facilities - page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
         return facilityService.getAllFacilities(pageable);
     }
 
@@ -35,6 +38,7 @@ public class FacilityController {
     })
     @GetMapping("/{id}")
     public FacilityDto getFacility(@PathVariable Long id) {
+        log.info("GET /api/facilities/{} - retrieving facility", id);
         return facilityService.getFacility(id);
     }
 
@@ -47,6 +51,7 @@ public class FacilityController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public FacilityDto addFacility(@RequestBody CreateFacilityCommand command) {
+        log.info("POST /api/facilities - creating facility: name={}, city={}, postalCode={}, street={}, buildingNumber={}", command.name(), command.city(), command.postalCode(), command.street(), command.buildingNumber());
         return facilityService.addFacility(command);
     }
 
@@ -60,6 +65,7 @@ public class FacilityController {
     @PutMapping("/{id}")
     public FacilityDto updateFacility(@PathVariable Long id,
                                    @RequestBody UpdateFacilityCommand command) {
+        log.info("PUT /api/facilities/{} - updating facility: name={}, city={}, postalCode={}, street={}, buildingNumber={}", id, command.name(), command.city(), command.postalCode(), command.street(), command.buildingNumber());
         return facilityService.updateFacility(id, command);
     }
 
@@ -71,6 +77,7 @@ public class FacilityController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteFacility(@PathVariable Long id) {
+        log.info("DELETE /api/facilities/{} - deleting facility", id);
         facilityService.deleteFacility(id);
     }
 }

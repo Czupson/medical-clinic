@@ -12,11 +12,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.data.domain.Pageable;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -30,6 +32,7 @@ public class UserController {
     })
     @GetMapping
     public PageDto<UserDto> getAllUsers(Pageable pageable) {
+        log.info("GET /api/users - page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
         return service.getAllUsers(pageable);
     }
 
@@ -40,6 +43,7 @@ public class UserController {
     })
     @GetMapping("/{id}")
     public UserDto getUser(@PathVariable Long id) {
+        log.info("GET /api/users/{} - retrieving user", id);
         return service.getUser(id);
     }
 
@@ -52,6 +56,7 @@ public class UserController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public User addUser(@RequestBody CreateUserCommand command) {
+        log.info("POST /api/users - creating user: email={}", command.email());
         return service.addUser(mapper.toUser(command));
     }
 
@@ -65,6 +70,7 @@ public class UserController {
     @PutMapping("/{id}")
     public User updateUser(@PathVariable Long id,
                            @RequestBody UpdateUserCommand command) {
+        log.info("PUT /api/users/{} - updating user: email={}", id, command.email());
         return service.updateUser(id, mapper.toUser(command));
     }
 
@@ -76,6 +82,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable Long id) {
+        log.info("DELETE /api/users/{} - deleting user", id);
         service.deleteUser(id);
     }
 
@@ -88,6 +95,7 @@ public class UserController {
     @PatchMapping("/{id}/password")
     public void changePassword(@PathVariable Long id,
                                @RequestBody ChangePasswordCommand command) {
+        log.info("PATCH /api/users/{}/password - changing password", id);
         service.changePassword(id, command.newPassword());
     }
 }

@@ -9,12 +9,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/appointments")
 @RequiredArgsConstructor
@@ -27,6 +29,7 @@ public class AppointmentController {
     })
     @GetMapping
     public PageDto<AppointmentDto> getAllAppointments(Pageable pageable) {
+        log.info("GET /api/appointments - page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
         return appointmentService.getAllAppointments(pageable);
     }
 
@@ -37,6 +40,7 @@ public class AppointmentController {
     })
     @GetMapping("/{id}")
     public AppointmentDto getAppointment(@PathVariable Long id) {
+        log.info("GET /api/appointments/{} - retrieving appointment", id);
         return appointmentService.getAppointment(id);
     }
 
@@ -49,6 +53,7 @@ public class AppointmentController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public AppointmentDto addAppointment(@RequestBody CreateAppointmentCommand command) {
+        log.info("POST /api/appointments - creating appointment: doctorId={}, start={}, end={}", command.doctorId(), command.appointmentStart(), command.appointmentEnd());
         return appointmentService.addAppointment(command);
     }
 
@@ -63,6 +68,7 @@ public class AppointmentController {
     public AppointmentDto bookAppointment(
             @PathVariable Long id,
             @RequestBody BookAppointmentCommand command) {
+        log.info("PATCH /api/appointments/{}/book - booking appointment: patientId={}", id, command.patientId());
         return appointmentService.bookAppointment(id, command);
     }
 
@@ -74,6 +80,7 @@ public class AppointmentController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteAppointment(@PathVariable Long id) {
+        log.info("DELETE /api/appointments/{} - deleting appointment", id);
         appointmentService.deleteAppointment(id);
     }
 
@@ -85,6 +92,7 @@ public class AppointmentController {
     @GetMapping("/patient/{patientId}")
     public List<AppointmentDto> getPatientAppointments(
             @PathVariable Long patientId) {
+        log.info("GET /api/appointments/patient/{} - retrieving patient appointments", patientId);
         return appointmentService.getPatientAppointments(patientId);
     }
 }

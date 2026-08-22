@@ -9,10 +9,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/doctors")
 @RequiredArgsConstructor
@@ -25,6 +27,7 @@ public class DoctorController {
     })
     @GetMapping
     public PageDto<DoctorDto> getAllDoctors(Pageable pageable) {
+        log.info("GET /api/doctors - page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
         return doctorService.getAllDoctors(pageable);
     }
 
@@ -35,6 +38,7 @@ public class DoctorController {
     })
     @GetMapping("/{id}")
     public DoctorDto getDoctor(@PathVariable Long id) {
+        log.info("GET /api/doctors/{} - retrieving doctor", id);
         return doctorService.getDoctor(id);
     }
 
@@ -48,6 +52,7 @@ public class DoctorController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public DoctorDto addDoctor(@RequestBody CreateDoctorCommand command) {
+        log.info("POST /api/doctors - creating doctor: userId={}, firstName={}, lastName={}, " + "specialization={}, facilityIds={}", command.userId(), command.firstName(), command.lastName(), command.specialization(), command.facilityIds());
         return doctorService.addDoctor(command);
     }
 
@@ -61,6 +66,7 @@ public class DoctorController {
     @PutMapping("/{id}")
     public DoctorDto updateDoctor(@PathVariable Long id,
                                @RequestBody UpdateDoctorCommand command) {
+        log.info("PUT /api/doctors/{} - updating doctor: firstName={}, lastName={}, " + "specialization={}, facilityIds={}", id, command.firstName(), command.lastName(), command.specialization(), command.facilityIds());
         return doctorService.updateDoctor(id, command);
     }
 
@@ -72,6 +78,7 @@ public class DoctorController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteDoctor(@PathVariable Long id) {
+        log.info("DELETE /api/doctors/{} - deleting doctor", id);
         doctorService.deleteDoctor(id);
     }
 }
