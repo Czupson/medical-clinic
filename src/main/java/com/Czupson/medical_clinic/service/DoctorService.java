@@ -48,11 +48,7 @@ public class DoctorService {
 
     @Transactional
     public DoctorDto addDoctor(CreateDoctorCommand command) {
-        log.info(
-                "Creating doctor: userId={}, facilityIds={}",
-                command.userId(),
-                command.facilityIds()
-        );
+        log.info("Creating doctor: userId={}, facilityIds={}", command.userId(), command.facilityIds());
         User user = findUser(command.userId());
         validateDoctorDoesNotExist(user);
         Set<Facility> facilities = findFacilitiesOrThrow(command.facilityIds());
@@ -61,11 +57,7 @@ public class DoctorService {
         doctor.setFacilities(facilities);
         doctor.validate();
         Doctor savedDoctor = doctorRepository.save(doctor);
-        log.info(
-                "Doctor created: id={}, userId={}",
-                savedDoctor.getId(),
-                user.getId()
-        );
+        log.info("Doctor created: id={}, userId={}", savedDoctor.getId(), user.getId());
         return doctorMapper.toDto(savedDoctor);
     }
 
@@ -100,20 +92,14 @@ public class DoctorService {
     private User findUser(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> {
-                    log.warn(
-                            "User not found while creating doctor: userId={}",
-                            userId
-                    );
+                    log.warn("User not found while creating doctor: userId={}", userId);
                     return new UserNotFoundException(userId);
                 });
     }
 
     private void validateDoctorDoesNotExist(User user) {
         if (doctorRepository.existsByUser(user)) {
-            log.warn(
-                    "Attempt to create another doctor for userId={}",
-                    user.getId()
-            );
+            log.warn("Attempt to create another doctor for userId={}", user.getId());
             throw new DoctorAlreadyExistsException(user.getId());
         }
     }
@@ -123,10 +109,7 @@ public class DoctorService {
                 facilityRepository.findAllById(facilityIds)
         );
         if (facilities.size() != facilityIds.size()) {
-            log.warn(
-                    "Some facilities were not found: requestedFacilityIds={}",
-                    facilityIds
-            );
+            log.warn("Some facilities were not found: requestedFacilityIds={}", facilityIds);
             throw new FacilitiesNotFoundException();
         }
         return facilities;

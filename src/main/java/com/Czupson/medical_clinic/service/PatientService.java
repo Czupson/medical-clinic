@@ -48,11 +48,7 @@ public class PatientService {
         patient.setUser(user);
         patient.validate();
         Patient savedPatient = repository.save(patient);
-        log.info(
-                "Patient created: id={}, userId={}",
-                savedPatient.getId(),
-                user.getId()
-        );
+        log.info("Patient created: id={}, userId={}", savedPatient.getId(), user.getId());
         return mapper.toDto(savedPatient);
     }
 
@@ -94,10 +90,7 @@ public class PatientService {
 
     private void validatePatientDoesNotExist(User user) {
         if (user.getPatient() != null) {
-            log.warn(
-                    "Attempt to create another patient for userId={}",
-                    user.getId()
-            );
+            log.warn("Attempt to create another patient for userId={}", user.getId());
             throw new PatientAlreadyExistsException(user.getEmail());
         }
     }

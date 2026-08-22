@@ -42,10 +42,7 @@ public class FacilityService {
         Facility facility = facilityMapper.toFacility(command);
         facility.validate();
         Facility savedFacility = facilityRepository.save(facility);
-        log.info(
-                "Facility created: id={}",
-                savedFacility.getId()
-        );
+        log.info("Facility created: id={}", savedFacility.getId());
         return facilityMapper.toDto(savedFacility);
     }
 
@@ -87,10 +84,7 @@ public class FacilityService {
         facilityRepository.findByName(name)
                 .ifPresent(foundFacility -> {
                     if (!foundFacility.getId().equals(facilityId)) {
-                        log.warn(
-                                "Attempt to assign existing name to facility: facilityId={}",
-                                facilityId
-                        );
+                        log.warn("Attempt to assign existing name to facility: facilityId={}", facilityId);
                         throw new FacilityAlreadyExistsException(name);
                     }
                 });

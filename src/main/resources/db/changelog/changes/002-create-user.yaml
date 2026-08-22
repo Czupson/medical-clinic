@@ -41,11 +41,5 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     unique: true
-
-        - addForeignKeyConstraint:
-            baseTableName: patients
-            baseColumnNames: user_id
-            referencedTableName: users
-            referencedColumnNames: id
-            constraintName: fk_patients_user
-            onDelete: CASCADE
+                    references: users(id)
+                    foreignKeyName: fk_patients_user

@@ -47,12 +47,7 @@ public class AppointmentService {
 
     @Transactional
     public AppointmentDto addAppointment(CreateAppointmentCommand command) {
-        log.info(
-                "Creating appointment: doctorId={}, start={}, end={}",
-                command.doctorId(),
-                command.appointmentStart(),
-                command.appointmentEnd()
-        );
+        log.info("Creating appointment: doctorId={}, start={}, end={}", command.doctorId(), command.appointmentStart(), command.appointmentEnd());
         Doctor doctor = findDoctor(command.doctorId());
         validateAppointmentTimeAvailability(
                 doctor,
@@ -64,13 +59,7 @@ public class AppointmentService {
         appointment.setPatient(null);
         appointment.validate();
         Appointment savedAppointment = appointmentRepository.save(appointment);
-        log.info(
-                "Appointment created: id={}, doctorId={}, start={}, end={}",
-                savedAppointment.getId(),
-                doctor.getId(),
-                savedAppointment.getAppointmentStart(),
-                savedAppointment.getAppointmentEnd()
-        );
+        log.info("Appointment created: id={}, doctorId={}, start={}, end={}", savedAppointment.getId(), doctor.getId(), savedAppointment.getAppointmentStart(), savedAppointment.getAppointmentEnd());
         return appointmentMapper.toDto(savedAppointment);
     }
 
@@ -78,11 +67,7 @@ public class AppointmentService {
     public AppointmentDto bookAppointment(
             Long appointmentId,
             BookAppointmentCommand command) {
-        log.info(
-                "Booking appointment: appointmentId={}, patientId={}",
-                appointmentId,
-                command.patientId()
-        );
+        log.info("Booking appointment: appointmentId={}, patientId={}", appointmentId, command.patientId());
         Appointment appointment = findAppointment(appointmentId);
         validateAppointmentIsAvailable(appointment);
         validateAppointmentIsInFuture(appointment);
@@ -94,11 +79,7 @@ public class AppointmentService {
         );
         appointment.setPatient(patient);
         Appointment savedAppointment = appointmentRepository.save(appointment);
-        log.info(
-                "Appointment booked: appointmentId={}, patientId={}",
-                savedAppointment.getId(),
-                patient.getId()
-        );
+        log.info("Appointment booked: appointmentId={}, patientId={}", savedAppointment.getId(), patient.getId());
         return appointmentMapper.toDto(savedAppointment);
     }
 
@@ -145,34 +126,21 @@ public class AppointmentService {
                         doctor,
                         appointmentEnd,
                         appointmentStart)) {
-            log.warn(
-                    "Appointment conflict: doctorId={}, start={}, end={}",
-                    doctor.getId(),
-                    appointmentStart,
-                    appointmentEnd
-            );
+            log.warn("Appointment conflict: doctorId={}, start={}, end={}", doctor.getId(), appointmentStart, appointmentEnd);
             throw new AppointmentAlreadyExistsException();
         }
     }
 
     private void validateAppointmentIsAvailable(Appointment appointment) {
         if (appointment.getPatient() != null) {
-            log.warn(
-                    "Attempt to book already booked appointment: appointmentId={}, currentPatientId={}",
-                    appointment.getId(),
-                    appointment.getPatient().getId()
-            );
+            log.warn("Attempt to book already booked appointment: appointmentId={}, currentPatientId={}", appointment.getId(), appointment.getPatient().getId());
             throw new AppointmentAlreadyBookedException();
         }
     }
 
     private void validateAppointmentIsInFuture(Appointment appointment) {
         if (appointment.getAppointmentStart().isBefore(LocalDateTime.now())) {
-            log.warn(
-                    "Attempt to book appointment in the past: appointmentId={}, start={}",
-                    appointment.getId(),
-                    appointment.getAppointmentStart()
-            );
+            log.warn("Attempt to book appointment in the past: appointmentId={}, start={}", appointment.getId(), appointment.getAppointmentStart());
             throw new AppointmentDataValidationException(
                     "Cannot book an appointment in the past");
         }

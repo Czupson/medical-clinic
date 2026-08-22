@@ -81,10 +81,7 @@ public class UserService {
         userRepository.findByEmail(email)
                 .ifPresent(foundUser -> {
                     if (!foundUser.getId().equals(userId)) {
-                        log.warn(
-                                "Attempt to assign already existing email to user: userId={}",
-                                userId
-                        );
+                        log.warn("Attempt to assign already existing email to user: userId={}", userId);
                         throw new UserAlreadyExistsException(email);
                     }
                 });
