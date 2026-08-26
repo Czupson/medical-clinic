@@ -1,0 +1,300 @@
+package com.Czupson.medical_clinic.controller;
+
+import com.Czupson.medical_clinic.dto.PageDto;
+import com.Czupson.medical_clinic.dto.patient.CreatePatientCommand;
+import com.Czupson.medical_clinic.dto.patient.PatientDto;
+import com.Czupson.medical_clinic.dto.patient.UpdatePatientCommand;
+import com.Czupson.medical_clinic.exception.patient.PatientAlreadyExistsException;
+import com.Czupson.medical_clinic.exception.patient.PatientDataValidationException;
+import com.Czupson.medical_clinic.exception.patient.PatientNotFoundException;
+import com.Czupson.medical_clinic.service.PatientService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
+
+import static org.mockito.Mockito.*;
+import org.springframework.http.MediaType;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+
+@WebMvcTest(PatientController.class)
+public class PatientControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
+    private PatientService patientService;
+
+    @Test
+    void getPatient_PatientExists_PatientReturned() throws Exception {
+        // given
+        Long patientId = 1L;
+        PatientDto patientDto = new PatientDto(patientId, "ABC123456", "Jan", "Kowalski", "123456789", null);
+        when(patientService.getPatient(patientId)).thenReturn(patientDto);
+        // when and then
+        mockMvc.perform(get("/api/patients/{id}", patientId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.idCardNo").value("ABC123456"))
+                .andExpect(jsonPath("$.firstName").value("Jan"))
+                .andExpect(jsonPath("$.lastName").value("Kowalski"))
+                .andExpect(jsonPath("$.phoneNumber").value("123456789"));
+        verify(patientService).getPatient(patientId);
+    }
+
+    @Test
+    void getAllPatients_PatientsExist_PatientsReturned() throws Exception {
+        // given
+        PatientDto patientDto = new PatientDto(1L, "ABC123456", "Jan", "Kowalski", "123456789", null);
+        PageDto<PatientDto> pageDto = new PageDto<>(List.of(patientDto), 0, 10, 1, 1);
+        when(patientService.getAllPatients(any(Pageable.class))).thenReturn(pageDto);
+        // when and then
+        mockMvc.perform(get("/api/patients")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].idCardNo").value("ABC123456"))
+                .andExpect(jsonPath("$.content[0].firstName").value("Jan"))
+                .andExpect(jsonPath("$.content[0].lastName").value("Kowalski"))
+                .andExpect(jsonPath("$.content[0].phoneNumber").value("123456789"))
+                .andExpect(jsonPath("$.pageNumber").value(0))
+                .andExpect(jsonPath("$.pageSize").value(10))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.totalPages").value(1));
+        verify(patientService).getAllPatients(any(Pageable.class));
+    }
+
+    @Test
+    void addPatient_ValidCommand_PatientCreated() throws Exception {
+        // given
+        PatientDto patientDto = new PatientDto(1L, "ABC123456", "Jan", "Kowalski", "123456789", null);
+        when(patientService.addPatient(any(CreatePatientCommand.class)))
+                .thenReturn(patientDto);
+        String requestBody = """
+            {
+                "userId": 1,
+                "idCardNo": "ABC123456",
+                "firstName": "Jan",
+                "lastName": "Kowalski",
+                "phoneNumber": "123456789",
+                "birthday": "1990-01-01"
+            }
+            """;
+        // when and then
+        mockMvc.perform(post("/api/patients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.idCardNo").value("ABC123456"))
+                .andExpect(jsonPath("$.firstName").value("Jan"))
+                .andExpect(jsonPath("$.lastName").value("Kowalski"))
+                .andExpect(jsonPath("$.phoneNumber").value("123456789"));
+        verify(patientService).addPatient(any(CreatePatientCommand.class));
+    }
+
+    @Test
+    void updatePatient_ValidCommand_PatientUpdated() throws Exception {
+        // given
+        Long patientId = 1L;
+        PatientDto patientDto = new PatientDto(patientId, "ABC654321", "Adam", "Nowak", "987654321", null);
+        when(patientService.updatePatient(eq(patientId), any(UpdatePatientCommand.class))).thenReturn(patientDto);
+        String requestBody = """
+            {
+                "id": 1,
+                "idCardNo": "ABC654321",
+                "firstName": "Adam",
+                "lastName": "Nowak",
+                "phoneNumber": "987654321",
+                "birthday": "1991-02-02"
+            }
+            """;
+        // when and then
+        mockMvc.perform(put("/api/patients/{id}", patientId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.idCardNo").value("ABC654321"))
+                .andExpect(jsonPath("$.firstName").value("Adam"))
+                .andExpect(jsonPath("$.lastName").value("Nowak"))
+                .andExpect(jsonPath("$.phoneNumber").value("987654321"));
+        verify(patientService).updatePatient(eq(patientId), any(UpdatePatientCommand.class));
+    }
+
+    @Test
+    void deletePatient_PatientExists_PatientDeleted() throws Exception {
+        // given
+        Long patientId = 1L;
+        doNothing().when(patientService).deletePatient(patientId);
+        // when and then
+        mockMvc.perform(delete("/api/patients/{id}", patientId))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+        verify(patientService).deletePatient(patientId);
+    }
+
+    @Test
+    void getPatient_PatientDoesNotExist_NotFound() throws Exception {
+        // given
+        Long patientId = 1L;
+        when(patientService.getPatient(patientId))
+                .thenThrow(new PatientNotFoundException(patientId));
+        // when and then
+        mockMvc.perform(get("/api/patients/{id}", patientId))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404));
+        verify(patientService).getPatient(patientId);
+    }
+
+    @Test
+    void addPatient_InvalidData_BadRequest() throws Exception {
+        // given
+        when(patientService.addPatient(any(CreatePatientCommand.class))).thenThrow(new PatientDataValidationException("First name cannot be empty"));
+        String requestBody = """
+            {
+                "userId": 1,
+                "idCardNo": "ABC123456",
+                "firstName": "",
+                "lastName": "Kowalski",
+                "phoneNumber": "123456789",
+                "birthday": "1990-01-01"
+            }
+            """;
+        // when and then
+        mockMvc.perform(post("/api/patients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message")
+                        .value("First name cannot be empty"));
+        verify(patientService).addPatient(any(CreatePatientCommand.class));
+    }
+
+    @Test
+    void addPatient_PatientAlreadyExists_Conflict() throws Exception {
+        // given
+        when(patientService.addPatient(any(CreatePatientCommand.class))).thenThrow(new PatientAlreadyExistsException("jan.kowalski@example.com"));
+        String requestBody = """
+            {
+                "userId": 1,
+                "idCardNo": "ABC123456",
+                "firstName": "Jan",
+                "lastName": "Kowalski",
+                "phoneNumber": "123456789",
+                "birthday": "1990-01-01"
+            }
+            """;
+        // when and then
+        mockMvc.perform(post("/api/patients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message")
+                        .value("Patient already exists with email: jan.kowalski@example.com"));
+        verify(patientService).addPatient(any(CreatePatientCommand.class));
+    }
+
+    @Test
+    void updatePatient_PatientDoesNotExist_NotFound() throws Exception {
+        // given
+        Long patientId = 1L;
+        when(patientService.updatePatient(eq(patientId), any(UpdatePatientCommand.class))).thenThrow(new PatientNotFoundException(patientId));
+        String requestBody = """
+            {
+                "id": 1,
+                "idCardNo": "ABC654321",
+                "firstName": "Adam",
+                "lastName": "Nowak",
+                "phoneNumber": "987654321",
+                "birthday": "1991-02-02"
+            }
+            """;
+        // when and then
+        mockMvc.perform(put("/api/patients/{id}", patientId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404));
+        verify(patientService).updatePatient(eq(patientId), any(UpdatePatientCommand.class));
+    }
+
+    @Test
+    void updatePatient_InvalidData_BadRequest() throws Exception {
+        // given
+        Long patientId = 1L;
+        when(patientService.updatePatient(eq(patientId), any(UpdatePatientCommand.class))).thenThrow(new PatientDataValidationException("First name cannot be empty"));
+        String requestBody = """
+            {
+                "id": 1,
+                "idCardNo": "ABC654321",
+                "firstName": "",
+                "lastName": "Nowak",
+                "phoneNumber": "987654321",
+                "birthday": "1991-02-02"
+            }
+            """;
+        // when and then
+        mockMvc.perform(put("/api/patients/{id}", patientId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message")
+                        .value("First name cannot be empty"));
+        verify(patientService).updatePatient(eq(patientId), any(UpdatePatientCommand.class));
+    }
+
+    @Test
+    void updatePatient_PatientAlreadyExists_Conflict() throws Exception {
+        // given
+        Long patientId = 1L;
+        when(patientService.updatePatient(eq(patientId), any(UpdatePatientCommand.class))).thenThrow(new PatientAlreadyExistsException("jan.kowalski@example.com"));
+        String requestBody = """
+            {
+                "id": 1,
+                "idCardNo": "ABC654321",
+                "firstName": "Adam",
+                "lastName": "Nowak",
+                "phoneNumber": "987654321",
+                "birthday": "1991-02-02"
+            }
+            """;
+        // when and then
+        mockMvc.perform(put("/api/patients/{id}", patientId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message")
+                        .value("Patient already exists with email: jan.kowalski@example.com"));
+        verify(patientService).updatePatient(eq(patientId), any(UpdatePatientCommand.class));
+    }
+
+    @Test
+    void deletePatient_PatientDoesNotExist_NotFound() throws Exception {
+        // given
+        Long patientId = 1L;
+        doThrow(new PatientNotFoundException(patientId)).when(patientService).deletePatient(patientId);
+        // when and then
+        mockMvc.perform(delete("/api/patients/{id}", patientId))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404));
+        verify(patientService).deletePatient(patientId);
+    }
+}
