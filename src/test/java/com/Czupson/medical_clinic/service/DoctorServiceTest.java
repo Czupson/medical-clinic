@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import static com.Czupson.medical_clinic.factory.DoctorTestFactory.*;
 
 import java.util.HashSet;
 import java.util.List;
@@ -253,52 +254,5 @@ public class DoctorServiceTest {
         assertThrows(DoctorNotFoundException.class, () -> doctorService.deleteDoctor(doctorId));
         verify(doctorRepository).findById(doctorId);
         verify(doctorRepository, never()).delete(any(Doctor.class));
-    }
-
-    private Doctor createDoctor(Long doctorId) {
-        Doctor doctor = new Doctor();
-        doctor.setId(doctorId);
-        doctor.setFirstName("Jan");
-        doctor.setLastName("Kowalski");
-        doctor.setSpecialization("Kardiolog");
-        return doctor;
-    }
-
-    private User createUser(Long userId) {
-        User user = new User();
-        user.setId(userId);
-        user.setEmail("jan.kowalski@example.com");
-        user.setPassword("password123");
-        return user;
-    }
-
-    private Facility createFacility(Long facilityId) {
-        Facility facility = new Facility();
-        facility.setId(facilityId);
-        facility.setName("Przychodnia Młynowa");
-        facility.setCity("Białystok");
-        facility.setPostalCode("15-404");
-        facility.setStreet("Młynowa");
-        facility.setBuildingNumber("17");
-        return facility;
-    }
-
-    private Doctor createDoctor(
-            Long doctorId,
-            String firstName,
-            String lastName,
-            String specialization,
-            User user,
-            Set<Facility> facilities) {
-
-        Doctor doctor = new Doctor();
-        doctor.setId(doctorId);
-        doctor.setFirstName(firstName);
-        doctor.setLastName(lastName);
-        doctor.setSpecialization(specialization);
-        doctor.setUser(user);
-        doctor.setFacilities(new HashSet<>(facilities));
-
-        return doctor;
     }
 }
