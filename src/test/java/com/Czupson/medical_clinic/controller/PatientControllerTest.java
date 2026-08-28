@@ -8,15 +8,19 @@ import com.Czupson.medical_clinic.exception.patient.PatientAlreadyExistsExceptio
 import com.Czupson.medical_clinic.exception.patient.PatientDataValidationException;
 import com.Czupson.medical_clinic.exception.patient.PatientNotFoundException;
 import com.Czupson.medical_clinic.service.PatientService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import org.springframework.http.MediaType;
 
@@ -36,6 +40,9 @@ public class PatientControllerTest {
 
     @MockitoBean
     private PatientService patientService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     void getPatient_PatientExists_PatientReturned() throws Exception {
@@ -80,59 +87,48 @@ public class PatientControllerTest {
     @Test
     void addPatient_ValidCommand_PatientCreated() throws Exception {
         // given
-        PatientDto patientDto = new PatientDto(1L, "ABC123456", "Jan", "Kowalski", "123456789", null);
-        when(patientService.addPatient(any(CreatePatientCommand.class)))
-                .thenReturn(patientDto);
-        String requestBody = """
-            {
-                "userId": 1,
-                "idCardNo": "ABC123456",
-                "firstName": "Jan",
-                "lastName": "Kowalski",
-                "phoneNumber": "123456789",
-                "birthday": "1990-01-01"
-            }
-            """;
-        // when and then
+        CreatePatientCommand command = new CreatePatientCommand(1L, "ABC123456", "Jan", "Kowalski",
+                "123456789", LocalDate.of(1990, 1, 1));
+        PatientDto patientDto = new PatientDto(1L, "ABC123456", "Jan", "Kowalski",
+                "123456789", null);
+        when(patientService.addPatient(any(CreatePatientCommand.class))).thenReturn(patientDto);
+        // when & then
         mockMvc.perform(post("/api/patients")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
+                        .content(objectMapper.writeValueAsString(command)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.idCardNo").value("ABC123456"))
                 .andExpect(jsonPath("$.firstName").value("Jan"))
                 .andExpect(jsonPath("$.lastName").value("Kowalski"))
                 .andExpect(jsonPath("$.phoneNumber").value("123456789"));
-        verify(patientService).addPatient(any(CreatePatientCommand.class));
+        ArgumentCaptor<CreatePatientCommand> captor = ArgumentCaptor.forClass(CreatePatientCommand.class);
+        verify(patientService).addPatient(captor.capture());
+        assertEquals(command, captor.getValue());
     }
 
     @Test
     void updatePatient_ValidCommand_PatientUpdated() throws Exception {
         // given
         Long patientId = 1L;
-        PatientDto patientDto = new PatientDto(patientId, "ABC654321", "Adam", "Nowak", "987654321", null);
+        UpdatePatientCommand command = new UpdatePatientCommand(patientId, "ABC654321", "Adam", "Nowak",
+                "987654321", LocalDate.of(1991, 2, 2));
+        PatientDto patientDto = new PatientDto(patientId, "ABC654321", "Adam", "Nowak",
+                "987654321", LocalDate.of(1991, 2, 2));
         when(patientService.updatePatient(eq(patientId), any(UpdatePatientCommand.class))).thenReturn(patientDto);
-        String requestBody = """
-            {
-                "id": 1,
-                "idCardNo": "ABC654321",
-                "firstName": "Adam",
-                "lastName": "Nowak",
-                "phoneNumber": "987654321",
-                "birthday": "1991-02-02"
-            }
-            """;
-        // when and then
+        // when & then
         mockMvc.perform(put("/api/patients/{id}", patientId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
+                        .content(objectMapper.writeValueAsString(command)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.idCardNo").value("ABC654321"))
                 .andExpect(jsonPath("$.firstName").value("Adam"))
                 .andExpect(jsonPath("$.lastName").value("Nowak"))
                 .andExpect(jsonPath("$.phoneNumber").value("987654321"));
-        verify(patientService).updatePatient(eq(patientId), any(UpdatePatientCommand.class));
+        ArgumentCaptor<UpdatePatientCommand> captor = ArgumentCaptor.forClass(UpdatePatientCommand.class);
+        verify(patientService).updatePatient(eq(patientId), captor.capture());
+        assertEquals(command, captor.getValue());
     }
 
     @Test
@@ -151,8 +147,7 @@ public class PatientControllerTest {
     void getPatient_PatientDoesNotExist_NotFound() throws Exception {
         // given
         Long patientId = 1L;
-        when(patientService.getPatient(patientId))
-                .thenThrow(new PatientNotFoundException(patientId));
+        when(patientService.getPatient(patientId)).thenThrow(new PatientNotFoundException(patientId));
         // when and then
         mockMvc.perform(get("/api/patients/{id}", patientId))
                 .andExpect(status().isNotFound())
@@ -163,127 +158,97 @@ public class PatientControllerTest {
     @Test
     void addPatient_InvalidData_BadRequest() throws Exception {
         // given
+        CreatePatientCommand command = new CreatePatientCommand(1L, "ABC123456", "", "Kowalski",
+                "123456789", LocalDate.of(1990, 1, 1));
         when(patientService.addPatient(any(CreatePatientCommand.class))).thenThrow(new PatientDataValidationException("First name cannot be empty"));
-        String requestBody = """
-            {
-                "userId": 1,
-                "idCardNo": "ABC123456",
-                "firstName": "",
-                "lastName": "Kowalski",
-                "phoneNumber": "123456789",
-                "birthday": "1990-01-01"
-            }
-            """;
-        // when and then
+        // when & then
         mockMvc.perform(post("/api/patients")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
+                        .content(objectMapper.writeValueAsString(command)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.message")
                         .value("First name cannot be empty"));
-        verify(patientService).addPatient(any(CreatePatientCommand.class));
+        ArgumentCaptor<CreatePatientCommand> captor = ArgumentCaptor.forClass(CreatePatientCommand.class);
+        verify(patientService).addPatient(captor.capture());
+        assertEquals(command, captor.getValue());
     }
 
     @Test
     void addPatient_PatientAlreadyExists_Conflict() throws Exception {
         // given
+        CreatePatientCommand command = new CreatePatientCommand(1L, "ABC123456", "Jan", "Kowalski",
+                "123456789", LocalDate.of(1990, 1, 1));
         when(patientService.addPatient(any(CreatePatientCommand.class))).thenThrow(new PatientAlreadyExistsException("jan.kowalski@example.com"));
-        String requestBody = """
-            {
-                "userId": 1,
-                "idCardNo": "ABC123456",
-                "firstName": "Jan",
-                "lastName": "Kowalski",
-                "phoneNumber": "123456789",
-                "birthday": "1990-01-01"
-            }
-            """;
-        // when and then
+        // when & then
         mockMvc.perform(post("/api/patients")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
+                        .content(objectMapper.writeValueAsString(command)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409))
                 .andExpect(jsonPath("$.message")
                         .value("Patient already exists with email: jan.kowalski@example.com"));
-        verify(patientService).addPatient(any(CreatePatientCommand.class));
+        ArgumentCaptor<CreatePatientCommand> captor = ArgumentCaptor.forClass(CreatePatientCommand.class);
+        verify(patientService).addPatient(captor.capture());
+        assertEquals(command, captor.getValue());
     }
 
     @Test
     void updatePatient_PatientDoesNotExist_NotFound() throws Exception {
         // given
         Long patientId = 1L;
+        UpdatePatientCommand command = new UpdatePatientCommand(patientId, "ABC654321", "Adam", "Nowak",
+                "987654321", LocalDate.of(1991, 2, 2));
         when(patientService.updatePatient(eq(patientId), any(UpdatePatientCommand.class))).thenThrow(new PatientNotFoundException(patientId));
-        String requestBody = """
-            {
-                "id": 1,
-                "idCardNo": "ABC654321",
-                "firstName": "Adam",
-                "lastName": "Nowak",
-                "phoneNumber": "987654321",
-                "birthday": "1991-02-02"
-            }
-            """;
-        // when and then
+        // when & then
         mockMvc.perform(put("/api/patients/{id}", patientId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
+                        .content(objectMapper.writeValueAsString(command)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404));
-        verify(patientService).updatePatient(eq(patientId), any(UpdatePatientCommand.class));
+        ArgumentCaptor<UpdatePatientCommand> captor = ArgumentCaptor.forClass(UpdatePatientCommand.class);
+        verify(patientService).updatePatient(eq(patientId), captor.capture());
+        assertEquals(command, captor.getValue());
     }
 
     @Test
     void updatePatient_InvalidData_BadRequest() throws Exception {
         // given
         Long patientId = 1L;
+        UpdatePatientCommand command = new UpdatePatientCommand(patientId, "ABC654321", "", "Nowak",
+                "987654321", LocalDate.of(1991, 2, 2));
         when(patientService.updatePatient(eq(patientId), any(UpdatePatientCommand.class))).thenThrow(new PatientDataValidationException("First name cannot be empty"));
-        String requestBody = """
-            {
-                "id": 1,
-                "idCardNo": "ABC654321",
-                "firstName": "",
-                "lastName": "Nowak",
-                "phoneNumber": "987654321",
-                "birthday": "1991-02-02"
-            }
-            """;
-        // when and then
+        // when & then
         mockMvc.perform(put("/api/patients/{id}", patientId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
+                        .content(objectMapper.writeValueAsString(command)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.message")
                         .value("First name cannot be empty"));
-        verify(patientService).updatePatient(eq(patientId), any(UpdatePatientCommand.class));
+        ArgumentCaptor<UpdatePatientCommand> captor = ArgumentCaptor.forClass(UpdatePatientCommand.class);
+        verify(patientService).updatePatient(eq(patientId), captor.capture());
+        assertEquals(command, captor.getValue());
     }
 
     @Test
     void updatePatient_PatientAlreadyExists_Conflict() throws Exception {
         // given
         Long patientId = 1L;
+        UpdatePatientCommand command = new UpdatePatientCommand(patientId, "ABC654321", "Adam", "Nowak",
+                "987654321", LocalDate.of(1991, 2, 2));
         when(patientService.updatePatient(eq(patientId), any(UpdatePatientCommand.class))).thenThrow(new PatientAlreadyExistsException("jan.kowalski@example.com"));
-        String requestBody = """
-            {
-                "id": 1,
-                "idCardNo": "ABC654321",
-                "firstName": "Adam",
-                "lastName": "Nowak",
-                "phoneNumber": "987654321",
-                "birthday": "1991-02-02"
-            }
-            """;
-        // when and then
+        // when & then
         mockMvc.perform(put("/api/patients/{id}", patientId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
+                        .content(objectMapper.writeValueAsString(command)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409))
                 .andExpect(jsonPath("$.message")
                         .value("Patient already exists with email: jan.kowalski@example.com"));
-        verify(patientService).updatePatient(eq(patientId), any(UpdatePatientCommand.class));
+        ArgumentCaptor<UpdatePatientCommand> captor = ArgumentCaptor.forClass(UpdatePatientCommand.class);
+        verify(patientService).updatePatient(eq(patientId), captor.capture());
+        assertEquals(command, captor.getValue());
     }
 
     @Test
