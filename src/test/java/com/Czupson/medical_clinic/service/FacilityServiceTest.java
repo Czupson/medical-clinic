@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import static com.Czupson.medical_clinic.factory.FacilityTestFactory.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -202,33 +203,5 @@ public class FacilityServiceTest {
         assertThrows(FacilityNotFoundException.class, () -> facilityService.deleteFacility(facilityId));
         verify(facilityRepository).findById(facilityId);
         verify(facilityRepository, never()).delete(any(Facility.class));
-    }
-
-    private Facility createFacility(Long facilityId) {
-        Facility facility = new Facility();
-        facility.setId(facilityId);
-        facility.setName("Przychodnia Centrum");
-        facility.setCity("Warszawa");
-        facility.setPostalCode("00-001");
-        facility.setStreet("Wiejska");
-        facility.setBuildingNumber("1");
-        return facility;
-    }
-
-    private Facility createFacility(
-            Long id,
-            String name,
-            String city,
-            String postalCode,
-            String street,
-            String buildingNumber) {
-        Facility facility = new Facility();
-        facility.setId(id);
-        facility.setName(name);
-        facility.setCity(city);
-        facility.setPostalCode(postalCode);
-        facility.setStreet(street);
-        facility.setBuildingNumber(buildingNumber);
-        return facility;
     }
 }
