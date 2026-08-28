@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import static com.Czupson.medical_clinic.factory.PatientTestFactory.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -204,43 +205,5 @@ public class PatientServiceTest {
         // then
         verify(patientRepository).findById(patientId);
         verify(patientRepository).delete(patient);
-    }
-
-    private User createUser(Long userId) {
-        User user = new User();
-        user.setId(userId);
-        user.setEmail("jan.kowalski@example.com");
-        return user;
-    }
-
-    private Patient createPatient(Long patientId, User user) {
-        Patient patient = new Patient();
-        patient.setId(patientId);
-        patient.setIdCardNo("ABC123456");
-        patient.setFirstName("Jan");
-        patient.setLastName("Kowalski");
-        patient.setPhoneNumber("123456789");
-        patient.setBirthday(LocalDate.of(1990, 1, 1));
-        patient.setUser(user);
-        return patient;
-    }
-
-    private Patient createPatient(
-            Long id,
-            String idCardNo,
-            String firstName,
-            String lastName,
-            String phoneNumber,
-            LocalDate birthday,
-            User user) {
-        Patient patient = new Patient();
-        patient.setId(id);
-        patient.setIdCardNo(idCardNo);
-        patient.setFirstName(firstName);
-        patient.setLastName(lastName);
-        patient.setPhoneNumber(phoneNumber);
-        patient.setBirthday(birthday);
-        patient.setUser(user);
-        return patient;
     }
 }
