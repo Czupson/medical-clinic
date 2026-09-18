@@ -14,7 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Slf4j
 @RestController
@@ -90,9 +90,40 @@ public class AppointmentController {
             @ApiResponse(responseCode = "404", description = "Patient not found")
     })
     @GetMapping("/patient/{patientId}")
-    public List<AppointmentDto> getPatientAppointments(
-            @PathVariable Long patientId) {
-        log.info("GET /api/appointments/patient/{} - retrieving patient appointments", patientId);
-        return appointmentService.getPatientAppointments(patientId);
+    public PageDto<AppointmentDto> getPatientAppointments(
+            @PathVariable Long patientId,
+            Pageable pageable) {
+        log.info("GET /api/appointments/patient/{} - page={}, size={}", patientId, pageable.getPageNumber(), pageable.getPageSize());
+        return appointmentService.getPatientAppointments(patientId, pageable);
+    }
+
+    @Operation(summary = "Get available appointments for doctor", description = "Returns a paginated list of available appointments for the specified doctor")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Available appointments retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Doctor not found")
+    })
+    @GetMapping("/doctor/{doctorId}/available")
+    public PageDto<AppointmentDto> getAvailableAppointmentsForDoctor(
+            @PathVariable Long doctorId,
+            Pageable pageable) {
+        log.info("GET /api/appointments/doctor/{}/available - page={}, size={}", doctorId, pageable.getPageNumber(), pageable.getPageSize());
+        return appointmentService.getAvailableAppointmentsForDoctor(doctorId, pageable);
+    }
+
+    @Operation(
+            summary = "Get available appointments by specialization",
+            description = "Returns available appointments for a specialization within a specified time interval"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Available appointments retrieved successfully")
+    })
+    @GetMapping("/available")
+    public PageDto<AppointmentDto> getAvailableAppointmentsBySpecialization(
+            @RequestParam String specialization,
+            @RequestParam LocalDateTime start,
+            @RequestParam LocalDateTime end,
+            Pageable pageable) {
+        log.info("GET /api/appointments/available - specialization={}, start={}, end={}, page={}, size={}", specialization, start, end, pageable.getPageNumber(), pageable.getPageSize());
+        return appointmentService.getAvailableAppointmentsBySpecialization(specialization, start, end, pageable);
     }
 }
