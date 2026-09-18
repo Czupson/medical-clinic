@@ -94,8 +94,8 @@ public class AppointmentServiceTest {
     void addAppointment_ValidCommand_AppointmentCreated() {
         // given
         Long doctorId = 1L;
-        LocalDateTime start = LocalDateTime.of(2026, 9, 1, 10, 0);
-        LocalDateTime end = LocalDateTime.of(2026, 9, 1, 11, 0);
+        LocalDateTime start = LocalDateTime.of(2026, 10, 1, 10, 0);
+        LocalDateTime end = LocalDateTime.of(2026, 10, 1, 11, 0);
         Doctor doctor = new Doctor();
         doctor.setId(doctorId);
         CreateAppointmentCommand command = new CreateAppointmentCommand(doctorId, start, end);
@@ -303,15 +303,21 @@ public class AppointmentServiceTest {
         appointment.setId(1L);
         appointment.setPatient(patient);
         AppointmentDto appointmentDto = mock(AppointmentDto.class);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Appointment> page = new PageImpl<>(List.of(appointment), pageable, 1);
         when(patientRepository.findById(patientId)).thenReturn(Optional.of(patient));
-        when(appointmentRepository.findByPatient(patient)).thenReturn(List.of(appointment));
+        when(appointmentRepository.findByPatient(patient, pageable)).thenReturn(page);
         when(appointmentMapper.toDto(appointment)).thenReturn(appointmentDto);
         // when
-        List<AppointmentDto> result = appointmentService.getPatientAppointments(patientId);
+        PageDto<AppointmentDto> result = appointmentService.getPatientAppointments(patientId, pageable);
         // then
-        assertEquals(List.of(appointmentDto), result);
+        assertEquals(List.of(appointmentDto), result.content());
+        assertEquals(0, result.pageNumber());
+        assertEquals(10, result.pageSize());
+        assertEquals(1, result.totalElements());
+        assertEquals(1, result.totalPages());
         verify(patientRepository).findById(patientId);
-        verify(appointmentRepository).findByPatient(patient);
+        verify(appointmentRepository).findByPatient(patient, pageable);
         verify(appointmentMapper).toDto(appointment);
     }
 
@@ -319,11 +325,71 @@ public class AppointmentServiceTest {
     void getPatientAppointments_PatientDoesNotExist_ExceptionThrown() {
         // given
         Long patientId = 1L;
+        Pageable pageable = PageRequest.of(0, 10);
         when(patientRepository.findById(patientId)).thenReturn(Optional.empty());
         // when and then
-        assertThrows(PatientNotFoundException.class, () -> appointmentService.getPatientAppointments(patientId));
+        assertThrows(PatientNotFoundException.class, () -> appointmentService.getPatientAppointments(patientId, pageable));
         verify(patientRepository).findById(patientId);
         verifyNoInteractions(appointmentRepository, appointmentMapper);
+    }
+
+    @Test
+    void getAvailableAppointmentsForDoctor_AppointmentsExist_AppointmentsReturned() {
+        // given
+        Long doctorId = 1L;
+        Doctor doctor = new Doctor();
+        doctor.setId(doctorId);
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setDoctor(doctor);
+        appointment.setAppointmentStart(LocalDateTime.of(2026, 10, 1, 10, 0));
+        appointment.setAppointmentEnd(LocalDateTime.of(2026, 10, 1, 11, 0));
+        appointment.setPatient(null);
+        AppointmentDto appointmentDto = mock(AppointmentDto.class);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Appointment> page = new PageImpl<>(List.of(appointment), pageable, 1);
+        when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
+        when(appointmentRepository.findByDoctorAndPatientIsNull(doctor, pageable)).thenReturn(page);
+        when(appointmentMapper.toDto(appointment)).thenReturn(appointmentDto);
+        // when
+        PageDto<AppointmentDto> result = appointmentService.getAvailableAppointmentsForDoctor(doctorId, pageable);
+        // then
+        assertEquals(List.of(appointmentDto), result.content());
+        assertEquals(0, result.pageNumber());
+        assertEquals(10, result.pageSize());
+        assertEquals(1, result.totalElements());
+        assertEquals(1, result.totalPages());
+        verify(doctorRepository).findById(doctorId);
+        verify(appointmentRepository).findByDoctorAndPatientIsNull(doctor, pageable);
+        verify(appointmentMapper).toDto(appointment);
+    }
+
+    @Test
+    void getAvailableAppointmentsBySpecialization_AppointmentsExist_AppointmentsReturned() {
+        // given
+        String specialization = "Cardiologist";
+        LocalDateTime start = LocalDateTime.of(2026, 10, 1, 0, 0);
+        LocalDateTime end = LocalDateTime.of(2026, 10, 2, 0, 0);
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setAppointmentStart(LocalDateTime.of(2026, 10, 1, 10, 0));
+        appointment.setAppointmentEnd(LocalDateTime.of(2026, 10, 1, 11, 0));
+        appointment.setPatient(null);
+        AppointmentDto appointmentDto = mock(AppointmentDto.class);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Appointment> page = new PageImpl<>(List.of(appointment), pageable, 1);
+        when(appointmentRepository.findAvailableAppointments(specialization, start, end, pageable)).thenReturn(page);
+        when(appointmentMapper.toDto(appointment)).thenReturn(appointmentDto);
+        // when
+        PageDto<AppointmentDto> result = appointmentService.getAvailableAppointmentsBySpecialization(specialization, start, end, pageable);
+        // then
+        assertEquals(List.of(appointmentDto), result.content());
+        assertEquals(0, result.pageNumber());
+        assertEquals(10, result.pageSize());
+        assertEquals(1, result.totalElements());
+        assertEquals(1, result.totalPages());
+        verify(appointmentRepository).findAvailableAppointments(specialization, start, end, pageable);
+        verify(appointmentMapper).toDto(appointment);
     }
 
     @Test

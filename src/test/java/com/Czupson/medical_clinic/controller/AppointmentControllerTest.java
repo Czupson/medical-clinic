@@ -131,20 +131,23 @@ class AppointmentControllerTest {
         AppointmentDto appointmentDto = new AppointmentDto(1L,
                 LocalDateTime.of(2026, 9, 1, 10, 0),
                 LocalDateTime.of(2026, 9, 1, 11, 0), 1L, patientId);
-        when(appointmentService.getPatientAppointments(patientId)).thenReturn(List.of(appointmentDto));
+        PageDto<AppointmentDto> pageDto = new PageDto<>(List.of(appointmentDto), 0, 10, 1L, 1);
+        when(appointmentService.getPatientAppointments(eq(patientId), any(Pageable.class))).thenReturn(pageDto);
         // when & then
-        mockMvc.perform(get(
-                        "/api/appointments/patient/{patientId}",
-                        patientId))
+        mockMvc.perform(get("/api/appointments/patient/{patientId}", patientId)
+                        .param("page", "0")
+                        .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].doctorId").value(1))
-                .andExpect(jsonPath("$[0].patientId").value(2))
-                .andExpect(jsonPath("$[0].appointmentStart")
-                        .value("2026-09-01T10:00:00"))
-                .andExpect(jsonPath("$[0].appointmentEnd")
-                        .value("2026-09-01T11:00:00"));
-        verify(appointmentService).getPatientAppointments(patientId);
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].doctorId").value(1))
+                .andExpect(jsonPath("$.content[0].patientId").value(2))
+                .andExpect(jsonPath("$.content[0].appointmentStart").value("2026-09-01T10:00:00"))
+                .andExpect(jsonPath("$.content[0].appointmentEnd").value("2026-09-01T11:00:00"))
+                .andExpect(jsonPath("$.pageNumber").value(0))
+                .andExpect(jsonPath("$.pageSize").value(10))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.totalPages").value(1));
+        verify(appointmentService).getPatientAppointments(eq(patientId), any(Pageable.class));
     }
 
     @Test
@@ -260,8 +263,7 @@ class AppointmentControllerTest {
                         .content(objectMapper.writeValueAsString(command)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message")
-                        .value("Cannot book an appointment in the past"));
+                .andExpect(jsonPath("$.message").value("Cannot book an appointment in the past"));
         ArgumentCaptor<BookAppointmentCommand> captor = ArgumentCaptor.forClass(BookAppointmentCommand.class);
         verify(appointmentService).bookAppointment(eq(appointmentId), captor.capture());
         assertEquals(command, captor.getValue());
@@ -323,14 +325,14 @@ class AppointmentControllerTest {
     void getPatientAppointments_PatientDoesNotExist_NotFound() throws Exception {
         // given
         Long patientId = 2L;
-        when(appointmentService.getPatientAppointments(patientId)).thenThrow(new PatientNotFoundException(patientId));
+        when(appointmentService.getPatientAppointments(eq(patientId), any(Pageable.class))).thenThrow(new PatientNotFoundException(patientId));
         // when & then
-        mockMvc.perform(get(
-                        "/api/appointments/patient/{patientId}",
-                        patientId))
+        mockMvc.perform(get("/api/appointments/patient/{patientId}", patientId)
+                        .param("page", "0")
+                        .param("size", "10"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404));
-        verify(appointmentService).getPatientAppointments(patientId);
+        verify(appointmentService).getPatientAppointments(eq(patientId), any(Pageable.class));
     }
 
     @Test
@@ -349,5 +351,79 @@ class AppointmentControllerTest {
         ArgumentCaptor<CreateAppointmentCommand> captor = ArgumentCaptor.forClass(CreateAppointmentCommand.class);
         verify(appointmentService).addAppointment(captor.capture());
         assertEquals(command, captor.getValue());
+    }
+
+    @Test
+    void getAvailableAppointmentsForDoctor_AppointmentsExist_AppointmentsReturned()
+            throws Exception {
+        // given
+        Long doctorId = 1L;
+        AppointmentDto appointmentDto = new AppointmentDto(1L,
+                LocalDateTime.of(2026, 9, 1, 10, 0),
+                LocalDateTime.of(2026, 9, 1, 11, 0), doctorId, null);
+        PageDto<AppointmentDto> pageDto = new PageDto<>(List.of(appointmentDto), 0, 10, 1L, 1);
+        when(appointmentService.getAvailableAppointmentsForDoctor(eq(doctorId), any(Pageable.class))).thenReturn(pageDto);
+        // when & then
+        mockMvc.perform(get("/api/appointments/doctor/{doctorId}/available", doctorId)
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].doctorId").value(1))
+                .andExpect(jsonPath("$.content[0].patientId").doesNotExist())
+                .andExpect(jsonPath("$.content[0].appointmentStart").value("2026-09-01T10:00:00"))
+                .andExpect(jsonPath("$.content[0].appointmentEnd").value("2026-09-01T11:00:00"))
+                .andExpect(jsonPath("$.pageNumber").value(0))
+                .andExpect(jsonPath("$.pageSize").value(10))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.totalPages").value(1));
+        verify(appointmentService).getAvailableAppointmentsForDoctor(eq(doctorId), any(Pageable.class));
+    }
+
+    @Test
+    void getAvailableAppointmentsForDoctor_DoctorDoesNotExist_NotFound()
+            throws Exception {
+        // given
+        Long doctorId = 1L;
+        when(appointmentService.getAvailableAppointmentsForDoctor(eq(doctorId), any(Pageable.class))).thenThrow(new DoctorNotFoundException(doctorId));
+        // when & then
+        mockMvc.perform(get("/api/appointments/doctor/{doctorId}/available", doctorId)
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404));
+        verify(appointmentService).getAvailableAppointmentsForDoctor(eq(doctorId), any(Pageable.class));
+    }
+
+    @Test
+    void getAvailableAppointmentsBySpecialization_AppointmentsExist_AppointmentsReturned()
+            throws Exception {
+        // given
+        String specialization = "Cardiologist";
+        LocalDateTime start = LocalDateTime.of(2026, 9, 1, 0, 0);
+        LocalDateTime end = LocalDateTime.of(2026, 9, 2, 0, 0);
+        AppointmentDto appointmentDto = new AppointmentDto(1L,
+                LocalDateTime.of(2026, 9, 1, 10, 0),
+                LocalDateTime.of(2026, 9, 1, 11, 0), 1L, null);
+        PageDto<AppointmentDto> pageDto = new PageDto<>(List.of(appointmentDto), 0, 10, 1L, 1);
+        when(appointmentService.getAvailableAppointmentsBySpecialization(eq(specialization), eq(start), eq(end), any(Pageable.class))).thenReturn(pageDto);
+        // when & then
+        mockMvc.perform(get("/api/appointments/available")
+                        .param("specialization", specialization)
+                        .param("start", start.toString())
+                        .param("end", end.toString())
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].doctorId").value(1))
+                .andExpect(jsonPath("$.content[0].patientId").doesNotExist())
+                .andExpect(jsonPath("$.content[0].appointmentStart").value("2026-09-01T10:00:00"))
+                .andExpect(jsonPath("$.content[0].appointmentEnd").value("2026-09-01T11:00:00"))
+                .andExpect(jsonPath("$.pageNumber").value(0))
+                .andExpect(jsonPath("$.pageSize").value(10))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.totalPages").value(1));
+        verify(appointmentService).getAvailableAppointmentsBySpecialization(eq(specialization), eq(start), eq(end), any(Pageable.class));
     }
 }
