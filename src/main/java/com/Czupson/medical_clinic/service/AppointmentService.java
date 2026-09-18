@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -91,12 +90,11 @@ public class AppointmentService {
     }
 
     @Transactional(readOnly = true)
-    public List<AppointmentDto> getPatientAppointments(Long patientId) {
+    public PageDto<AppointmentDto> getPatientAppointments(Long patientId, Pageable pageable) {
+        log.info("Getting patient appointments: patientId={}, page={}, size={}", patientId, pageable.getPageNumber(), pageable.getPageSize());
         Patient patient = findPatient(patientId);
-        return appointmentRepository.findByPatient(patient)
-                .stream()
-                .map(appointmentMapper::toDto)
-                .toList();
+        return PageDto.from(appointmentRepository.findByPatient(patient, pageable)
+                        .map(appointmentMapper::toDto));
     }
 
     private Appointment findAppointment(Long id) {
@@ -115,6 +113,25 @@ public class AppointmentService {
     private Patient findPatient(Long id) {
         return patientRepository.findById(id)
                 .orElseThrow(() -> new PatientNotFoundException(id));
+    }
+
+    @Transactional(readOnly = true)
+    public PageDto<AppointmentDto> getAvailableAppointmentsForDoctor(Long doctorId, Pageable pageable) {
+        log.info("Getting available appointments: doctorId={}, page={}, size={}", doctorId, pageable.getPageNumber(), pageable.getPageSize());
+        Doctor doctor = findDoctor(doctorId);
+        return PageDto.from(appointmentRepository.findByDoctorAndPatientIsNull(doctor, pageable)
+                        .map(appointmentMapper::toDto));
+    }
+
+    @Transactional(readOnly = true)
+    public PageDto<AppointmentDto> getAvailableAppointmentsBySpecialization(
+            String specialization,
+            LocalDateTime start,
+            LocalDateTime end,
+            Pageable pageable) {
+        log.info("Getting available appointments by specialization: specialization={}, start={}, end={}, page={}, size={}", specialization, start, end, pageable.getPageNumber(), pageable.getPageSize());
+        return PageDto.from(appointmentRepository.findAvailableAppointments(specialization, start, end, pageable)
+                        .map(appointmentMapper::toDto));
     }
 
     private void validateAppointmentTimeAvailability(
