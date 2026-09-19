@@ -255,4 +255,25 @@ public class DoctorServiceTest {
         verify(doctorRepository).findById(doctorId);
         verify(doctorRepository, never()).delete(any(Doctor.class));
     }
+
+    @Test
+    void getDoctorsBySpecialization_ShouldReturnDoctors() {
+        // given
+        String specialization = "Kardiolog";
+        Pageable pageable = PageRequest.of(0, 10);
+        Doctor doctor = new Doctor();
+        doctor.setId(1L);
+        doctor.setSpecialization(specialization);
+        Page<Doctor> doctorPage = new PageImpl<>(List.of(doctor), pageable, 1);
+        DoctorDto doctorDto = new DoctorDto(1L, "Jan", "Nowak", specialization);
+        when(doctorRepository.findBySpecialization(specialization, pageable)).thenReturn(doctorPage);
+        when(doctorMapper.toDto(doctor)).thenReturn(doctorDto);
+        // when
+        PageDto<DoctorDto> result = doctorService.getDoctorsBySpecialization(specialization, pageable);
+        // then
+        assertEquals(1, result.content().size());
+        assertEquals(doctorDto, result.content().getFirst());
+        verify(doctorRepository).findBySpecialization(specialization, pageable);
+        verify(doctorMapper).toDto(doctor);
+    }
 }

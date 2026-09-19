@@ -81,4 +81,17 @@ public class DoctorController {
         log.info("DELETE /api/doctors/{} - deleting doctor", id);
         doctorService.deleteDoctor(id);
     }
+
+    @GetMapping("/specialization/{specialization}")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Get doctors by specialization")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Doctors retrieved successfully")
+    })
+    public PageDto<DoctorDto> getDoctorsBySpecialization(
+            @PathVariable String specialization,
+            Pageable pageable) {
+        log.info("Getting doctors by specialization: specialization={}", specialization);
+        return doctorService.getDoctorsBySpecialization(specialization, pageable);
+    }
 }

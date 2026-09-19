@@ -97,6 +97,15 @@ public class DoctorService {
                 });
     }
 
+    @Transactional(readOnly = true)
+    public PageDto<DoctorDto> getDoctorsBySpecialization(
+            String specialization,
+            Pageable pageable) {
+        log.info("Getting doctors by specialization: specialization={}, page={}, size={}", specialization, pageable.getPageNumber(), pageable.getPageSize());
+        return PageDto.from(doctorRepository.findBySpecialization(specialization, pageable)
+                        .map(doctorMapper::toDto));
+    }
+
     private void validateDoctorDoesNotExist(User user) {
         if (doctorRepository.existsByUser(user)) {
             log.warn("Attempt to create another doctor for userId={}", user.getId());

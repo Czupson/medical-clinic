@@ -294,4 +294,25 @@ public class DoctorControllerTest {
         verify(doctorService).updateDoctor(eq(doctorId), captor.capture());
         assertEquals(command, captor.getValue());
     }
+
+    @Test
+    void getDoctorsBySpecialization_ShouldReturnDoctors() throws Exception {
+        // given
+        String specialization = "Kardiolog";
+
+        PageDto<DoctorDto> response = new PageDto<>(
+                List.of(new DoctorDto(1L, "Jan", "Nowak", specialization)), 0, 10, 1, 1);
+        when(doctorService.getDoctorsBySpecialization(eq(specialization), any(Pageable.class))).thenReturn(response);
+        // when and then
+        mockMvc.perform(get("/api/doctors/specialization/{specialization}", specialization)
+                                .param("page", "0")
+                                .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].firstName").value("Jan"))
+                .andExpect(jsonPath("$.content[0].lastName").value("Nowak"))
+                .andExpect(jsonPath("$.content[0].specialization").value("Kardiolog"));
+        verify(doctorService).getDoctorsBySpecialization(eq(specialization), any(Pageable.class));
+    }
 }
