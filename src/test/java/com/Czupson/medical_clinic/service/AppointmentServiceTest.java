@@ -9,6 +9,7 @@ import com.Czupson.medical_clinic.exception.doctor.DoctorNotFoundException;
 import com.Czupson.medical_clinic.exception.patient.PatientNotFoundException;
 import com.Czupson.medical_clinic.mapper.AppointmentMapper;
 import com.Czupson.medical_clinic.model.Appointment;
+import com.Czupson.medical_clinic.model.AppointmentStatus;
 import com.Czupson.medical_clinic.model.Doctor;
 import com.Czupson.medical_clinic.model.Patient;
 import com.Czupson.medical_clinic.repository.AppointmentRepository;
@@ -180,6 +181,7 @@ public class AppointmentServiceTest {
         // then
         assertSame(appointmentDto, result);
         assertSame(patient, appointment.getPatient());
+        assertEquals(AppointmentStatus.BOOKED, appointment.getStatus());
         verify(appointmentRepository).findById(appointmentId);
         verify(patientRepository).findById(patientId);
         verify(appointmentRepository).existsByPatientAndAppointmentStartLessThanAndAppointmentEndGreaterThan(patient, end, start);
@@ -199,6 +201,7 @@ public class AppointmentServiceTest {
         appointment.setAppointmentStart(LocalDateTime.now().plusDays(1));
         appointment.setAppointmentEnd(LocalDateTime.now().plusDays(1).plusHours(1));
         appointment.setPatient(currentPatient);
+        appointment.setStatus(AppointmentStatus.BOOKED);
         BookAppointmentCommand command = new BookAppointmentCommand(patientId);
         when(appointmentRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
         // when and then
@@ -349,7 +352,7 @@ public class AppointmentServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Appointment> page = new PageImpl<>(List.of(appointment), pageable, 1);
         when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
-        when(appointmentRepository.findByDoctorAndPatientIsNull(doctor, pageable)).thenReturn(page);
+        when(appointmentRepository.findByDoctorAndStatus(doctor, AppointmentStatus.AVAILABLE, pageable)).thenReturn(page);
         when(appointmentMapper.toDto(appointment)).thenReturn(appointmentDto);
         // when
         PageDto<AppointmentDto> result = appointmentService.getAvailableAppointmentsForDoctor(doctorId, pageable);
@@ -360,7 +363,7 @@ public class AppointmentServiceTest {
         assertEquals(1, result.totalElements());
         assertEquals(1, result.totalPages());
         verify(doctorRepository).findById(doctorId);
-        verify(appointmentRepository).findByDoctorAndPatientIsNull(doctor, pageable);
+        verify(appointmentRepository).findByDoctorAndStatus(doctor, AppointmentStatus.AVAILABLE, pageable);
         verify(appointmentMapper).toDto(appointment);
     }
 
@@ -378,7 +381,7 @@ public class AppointmentServiceTest {
         AppointmentDto appointmentDto = mock(AppointmentDto.class);
         Pageable pageable = PageRequest.of(0, 10);
         Page<Appointment> page = new PageImpl<>(List.of(appointment), pageable, 1);
-        when(appointmentRepository.findAvailableAppointments(specialization, start, end, pageable)).thenReturn(page);
+        when(appointmentRepository.findAvailableAppointments(AppointmentStatus.AVAILABLE, specialization, start, end, pageable)).thenReturn(page);
         when(appointmentMapper.toDto(appointment)).thenReturn(appointmentDto);
         // when
         PageDto<AppointmentDto> result = appointmentService.getAvailableAppointmentsBySpecialization(specialization, start, end, pageable);
@@ -388,7 +391,7 @@ public class AppointmentServiceTest {
         assertEquals(10, result.pageSize());
         assertEquals(1, result.totalElements());
         assertEquals(1, result.totalPages());
-        verify(appointmentRepository).findAvailableAppointments(specialization, start, end, pageable);
+        verify(appointmentRepository).findAvailableAppointments(AppointmentStatus.AVAILABLE, specialization, start, end, pageable);
         verify(appointmentMapper).toDto(appointment);
     }
 
@@ -415,5 +418,35 @@ public class AppointmentServiceTest {
         assertThrows(AppointmentNotFoundException.class, () -> appointmentService.deleteAppointment(appointmentId));
         verify(appointmentRepository).findById(appointmentId);
         verify(appointmentRepository, never()).delete(any(Appointment.class));
+    }
+
+    @Test
+    void cancelAppointment_ShouldSetStatusToCancelled() {
+        // given
+        Long appointmentId = 1L;
+        Appointment appointment = new Appointment();
+        appointment.setId(appointmentId);
+        appointment.setStatus(AppointmentStatus.BOOKED);
+        when(appointmentRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
+        // when
+        appointmentService.cancelAppointment(appointmentId);
+        // then
+        assertEquals(AppointmentStatus.CANCELLED, appointment.getStatus());
+        verify(appointmentRepository).findById(appointmentId);
+    }
+
+    @Test
+    void cancelAppointment_AppointmentNotBooked_ExceptionThrown() {
+        // given
+        Long appointmentId = 1L;
+        Appointment appointment = new Appointment();
+        appointment.setId(appointmentId);
+        appointment.setStatus(AppointmentStatus.AVAILABLE);
+        when(appointmentRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
+        // when and then
+        assertThrows(AppointmentNotBookedException.class, () -> appointmentService.cancelAppointment(appointmentId));
+        verify(appointmentRepository).findById(appointmentId);
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+        assertEquals(AppointmentStatus.AVAILABLE, appointment.getStatus());
     }
 }

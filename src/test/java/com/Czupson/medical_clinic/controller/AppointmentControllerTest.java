@@ -426,4 +426,23 @@ class AppointmentControllerTest {
                 .andExpect(jsonPath("$.totalPages").value(1));
         verify(appointmentService).getAvailableAppointmentsBySpecialization(eq(specialization), eq(start), eq(end), any(Pageable.class));
     }
+
+    @Test
+    void cancelAppointment_ShouldReturnNoContent() throws Exception {
+        Long appointmentId = 1L;
+        mockMvc.perform(delete("/api/appointments/{id}/cancel", appointmentId))
+                .andExpect(status().isNoContent());
+        verify(appointmentService).cancelAppointment(appointmentId);
+    }
+
+    @Test
+    void cancelAppointment_AppointmentNotBooked_ShouldReturnConflict() throws Exception {
+        // given
+        Long appointmentId = 1L;
+        doThrow(new AppointmentNotBookedException(appointmentId)).when(appointmentService).cancelAppointment(appointmentId);
+        // when and then
+        mockMvc.perform(delete("/api/appointments/{id}/cancel", appointmentId))
+                .andExpect(status().isConflict());
+        verify(appointmentService).cancelAppointment(appointmentId);
+    }
 }

@@ -35,12 +35,20 @@ public class Appointment {
     @JoinColumn(name = "patient_id")
     private Patient patient;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AppointmentStatus status = AppointmentStatus.AVAILABLE;
+
     public void update(Appointment updatedAppointment) {
         updatedAppointment.validate();
         this.appointmentStart = updatedAppointment.getAppointmentStart();
         this.appointmentEnd = updatedAppointment.getAppointmentEnd();
         this.doctor = updatedAppointment.getDoctor();
         this.patient = updatedAppointment.getPatient();
+    }
+
+    public void cancel() {
+        this.status = AppointmentStatus.CANCELLED;
     }
 
     public void validate() {

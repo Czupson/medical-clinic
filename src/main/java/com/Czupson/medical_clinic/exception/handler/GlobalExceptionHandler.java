@@ -1,5 +1,6 @@
 package com.Czupson.medical_clinic.exception.handler;
 
+import com.Czupson.medical_clinic.exception.appointment.AppointmentNotBookedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,6 +21,20 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity
                 .status(exception.getStatus())
+                .body(response);
+    }
+
+    @ExceptionHandler(AppointmentNotBookedException.class)
+    public ResponseEntity<ErrorResponse> handleAppointmentNotBooked(
+            AppointmentNotBookedException exception) {
+
+        ErrorResponse response = new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                exception.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
                 .body(response);
     }
 

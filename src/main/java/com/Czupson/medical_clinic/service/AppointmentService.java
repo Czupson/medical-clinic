@@ -9,6 +9,7 @@ import com.Czupson.medical_clinic.exception.doctor.DoctorNotFoundException;
 import com.Czupson.medical_clinic.exception.patient.PatientNotFoundException;
 import com.Czupson.medical_clinic.mapper.AppointmentMapper;
 import com.Czupson.medical_clinic.model.Appointment;
+import com.Czupson.medical_clinic.model.AppointmentStatus;
 import com.Czupson.medical_clinic.model.Doctor;
 import com.Czupson.medical_clinic.model.Patient;
 import com.Czupson.medical_clinic.repository.AppointmentRepository;
@@ -77,6 +78,7 @@ public class AppointmentService {
                 appointment.getAppointmentEnd()
         );
         appointment.setPatient(patient);
+        appointment.setStatus(AppointmentStatus.BOOKED);
         Appointment savedAppointment = appointmentRepository.save(appointment);
         log.info("Appointment booked: appointmentId={}, patientId={}", savedAppointment.getId(), patient.getId());
         return appointmentMapper.toDto(savedAppointment);
@@ -119,8 +121,8 @@ public class AppointmentService {
     public PageDto<AppointmentDto> getAvailableAppointmentsForDoctor(Long doctorId, Pageable pageable) {
         log.info("Getting available appointments: doctorId={}, page={}, size={}", doctorId, pageable.getPageNumber(), pageable.getPageSize());
         Doctor doctor = findDoctor(doctorId);
-        return PageDto.from(appointmentRepository.findByDoctorAndPatientIsNull(doctor, pageable)
-                        .map(appointmentMapper::toDto));
+        return PageDto.from(appointmentRepository.findByDoctorAndStatus(doctor, AppointmentStatus.AVAILABLE, pageable)
+                .map(appointmentMapper::toDto));
     }
 
     @Transactional(readOnly = true)
@@ -130,8 +132,17 @@ public class AppointmentService {
             LocalDateTime end,
             Pageable pageable) {
         log.info("Getting available appointments by specialization: specialization={}, start={}, end={}, page={}, size={}", specialization, start, end, pageable.getPageNumber(), pageable.getPageSize());
-        return PageDto.from(appointmentRepository.findAvailableAppointments(specialization, start, end, pageable)
-                        .map(appointmentMapper::toDto));
+        return PageDto.from(appointmentRepository.findAvailableAppointments(AppointmentStatus.AVAILABLE, specialization,
+                        start, end, pageable).map(appointmentMapper::toDto));
+    }
+
+    @Transactional
+    public void cancelAppointment(Long id) {
+        Appointment appointment = findAppointment(id);
+        if (appointment.getStatus() != AppointmentStatus.BOOKED) {
+            throw new AppointmentNotBookedException(id);}
+        appointment.cancel();
+        log.info("Appointment cancelled: id={}", id);
     }
 
     private void validateAppointmentTimeAvailability(
@@ -149,8 +160,8 @@ public class AppointmentService {
     }
 
     private void validateAppointmentIsAvailable(Appointment appointment) {
-        if (appointment.getPatient() != null) {
-            log.warn("Attempt to book already booked appointment: appointmentId={}, currentPatientId={}", appointment.getId(), appointment.getPatient().getId());
+        if (appointment.getStatus() != AppointmentStatus.AVAILABLE) {
+            log.warn("Attempt to book unavailable appointment: appointmentId={}, status={}", appointment.getId(), appointment.getStatus());
             throw new AppointmentAlreadyBookedException();
         }
     }

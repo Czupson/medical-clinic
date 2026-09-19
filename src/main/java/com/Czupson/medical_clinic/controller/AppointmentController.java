@@ -126,4 +126,18 @@ public class AppointmentController {
         log.info("GET /api/appointments/available - specialization={}, start={}, end={}, page={}, size={}", specialization, start, end, pageable.getPageNumber(), pageable.getPageSize());
         return appointmentService.getAvailableAppointmentsBySpecialization(specialization, start, end, pageable);
     }
+
+    @DeleteMapping("/{id}/cancel")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Cancel an appointment")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Appointment cancelled"),
+            @ApiResponse(responseCode = "404", description = "Appointment not found"),
+            @ApiResponse(responseCode = "409", description = "Appointment is not booked"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public void cancelAppointment(@PathVariable Long id) {
+        log.info("Cancelling appointment: id={}", id);
+        appointmentService.cancelAppointment(id);
+    }
 }
