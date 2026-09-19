@@ -140,4 +140,18 @@ public class AppointmentController {
         log.info("Cancelling appointment: id={}", id);
         appointmentService.cancelAppointment(id);
     }
+
+    @GetMapping("/doctor/{doctorId}")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Get all appointments for a doctor")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Appointments retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Doctor not found")
+    })
+    public PageDto<AppointmentDto> getDoctorAppointments(
+            @PathVariable Long doctorId,
+            Pageable pageable) {
+        log.info("Getting appointments for doctor: doctorId={}", doctorId);
+        return appointmentService.getDoctorAppointments(doctorId, pageable);
+    }
 }

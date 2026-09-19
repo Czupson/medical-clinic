@@ -28,6 +28,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     Page<Appointment> findByPatient(Patient patient, Pageable pageable);
 
+    Page<Appointment> findByDoctor(Doctor doctor, Pageable pageable);
+
     Page<Appointment> findByDoctorAndStatus(Doctor doctor, AppointmentStatus status, Pageable pageable);
 
     @Query("""

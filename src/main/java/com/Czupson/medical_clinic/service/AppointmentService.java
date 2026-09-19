@@ -145,6 +145,16 @@ public class AppointmentService {
         log.info("Appointment cancelled: id={}", id);
     }
 
+    @Transactional(readOnly = true)
+    public PageDto<AppointmentDto> getDoctorAppointments(
+            Long doctorId,
+            Pageable pageable) {
+        log.info("Getting doctor appointments: doctorId={}, page={}, size={}", doctorId, pageable.getPageNumber(), pageable.getPageSize());
+        Doctor doctor = findDoctor(doctorId);
+        return PageDto.from(appointmentRepository.findByDoctor(doctor, pageable)
+                        .map(appointmentMapper::toDto));
+    }
+
     private void validateAppointmentTimeAvailability(
             Doctor doctor,
             LocalDateTime appointmentStart,

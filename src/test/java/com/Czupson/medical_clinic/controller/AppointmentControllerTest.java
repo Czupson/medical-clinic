@@ -445,4 +445,35 @@ class AppointmentControllerTest {
                 .andExpect(status().isConflict());
         verify(appointmentService).cancelAppointment(appointmentId);
     }
+
+    @Test
+    void getDoctorAppointments_ShouldReturnAppointments() throws Exception {
+        // given
+        Long doctorId = 1L;
+        PageDto<AppointmentDto> response = new PageDto<>(
+                List.of(new AppointmentDto(1L,
+                                LocalDateTime.of(2026, 10, 1, 10, 0),
+                                LocalDateTime.of(2026, 10, 1, 10, 30),
+                                doctorId, 1L)), 0, 10, 1, 1);
+        when(appointmentService.getDoctorAppointments(eq(doctorId), any(Pageable.class))).thenReturn(response);
+        // when and then
+        mockMvc.perform(get("/api/appointments/doctor/{doctorId}", doctorId)
+                                .param("page", "0")
+                                .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].doctorId").value(doctorId));
+        verify(appointmentService).getDoctorAppointments(eq(doctorId), any(Pageable.class));
+    }
+
+    @Test
+    void getDoctorAppointments_DoctorNotFound_ShouldReturnNotFound() throws Exception {
+        Long doctorId = 999L;
+        when(appointmentService.getDoctorAppointments(eq(doctorId), any(Pageable.class))).thenThrow(new DoctorNotFoundException(doctorId));
+        mockMvc.perform(get("/api/appointments/doctor/{doctorId}", doctorId)
+                                .param("page", "0")
+                                .param("size", "10")).andExpect(status().isNotFound());
+        verify(appointmentService).getDoctorAppointments(eq(doctorId), any(Pageable.class));
+    }
 }

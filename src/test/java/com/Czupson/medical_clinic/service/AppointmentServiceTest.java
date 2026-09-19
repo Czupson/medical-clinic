@@ -449,4 +449,43 @@ public class AppointmentServiceTest {
         verify(appointmentRepository, never()).save(any(Appointment.class));
         assertEquals(AppointmentStatus.AVAILABLE, appointment.getStatus());
     }
+
+    @Test
+    void getDoctorAppointments_ShouldReturnAppointments() {
+        // given
+        Long doctorId = 1L;
+        Doctor doctor = new Doctor();
+        doctor.setId(doctorId);
+        Pageable pageable = PageRequest.of(0, 10);
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setDoctor(doctor);
+        appointment.setStatus(AppointmentStatus.BOOKED);
+        Page<Appointment> appointmentPage = new PageImpl<>(List.of(appointment), pageable, 1);
+        AppointmentDto appointmentDto = new AppointmentDto(1L, appointment.getAppointmentStart(), appointment.getAppointmentEnd(),
+                doctorId, 1L);
+        when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
+        when(appointmentRepository.findByDoctor(doctor, pageable)).thenReturn(appointmentPage);
+        when(appointmentMapper.toDto(appointment)).thenReturn(appointmentDto);
+        // when
+        PageDto<AppointmentDto> result = appointmentService.getDoctorAppointments(doctorId, pageable);
+        // then
+        assertEquals(1, result.content().size());
+        assertEquals(appointmentDto, result.content().getFirst());
+        verify(doctorRepository).findById(doctorId);
+        verify(appointmentRepository).findByDoctor(doctor, pageable);
+        verify(appointmentMapper).toDto(appointment);
+    }
+
+    @Test
+    void getDoctorAppointments_DoctorNotFound_ExceptionThrown() {
+        // given
+        Long doctorId = 1L;
+        Pageable pageable = PageRequest.of(0, 10);
+        when(doctorRepository.findById(doctorId)).thenReturn(Optional.empty());
+        // when and then
+        assertThrows(DoctorNotFoundException.class, () -> appointmentService.getDoctorAppointments(doctorId, pageable));
+        verify(doctorRepository).findById(doctorId);
+        verifyNoInteractions(appointmentRepository, appointmentMapper);
+    }
 }
