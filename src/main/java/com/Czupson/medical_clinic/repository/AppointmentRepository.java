@@ -36,12 +36,26 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     SELECT a
     FROM Appointment a
     WHERE a.status = :status
-      AND a.doctor.specialization = :specialization
+      AND (:specialization IS NULL OR a.doctor.specialization = :specialization)
       AND a.appointmentStart >= :start
       AND a.appointmentStart < :end
     """)
     Page<Appointment> findAvailableAppointments(
             @Param("status") AppointmentStatus status,
+            @Param("specialization") String specialization,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end,
+            Pageable pageable
+    );
+
+    @Query("""
+    SELECT a
+    FROM Appointment a
+    WHERE a.doctor.specialization = :specialization
+      AND a.appointmentStart >= :start
+      AND a.appointmentStart < :end
+    """)
+    Page<Appointment> findAppointmentsBySpecializationAndTimeRange(
             @Param("specialization") String specialization,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end,

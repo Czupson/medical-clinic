@@ -476,4 +476,54 @@ class AppointmentControllerTest {
                                 .param("size", "10")).andExpect(status().isNotFound());
         verify(appointmentService).getDoctorAppointments(eq(doctorId), any(Pageable.class));
     }
+
+    @Test
+    void getAppointmentsBySpecializationAndTimeRange_ShouldReturnAppointments() throws Exception {
+        // given
+        String specialization = "Kardiolog";
+        LocalDateTime start = LocalDateTime.of(2026, 10, 1, 0, 0);
+        LocalDateTime end = LocalDateTime.of(2026, 10, 2, 0, 0);
+        PageDto<AppointmentDto> response = new PageDto<>(
+                List.of(new AppointmentDto(1L,
+                                LocalDateTime.of(2026, 10, 1, 10, 0),
+                                LocalDateTime.of(2026, 10, 1, 10, 30),
+                                1L, 1L)), 0, 10, 1, 1);
+        when(appointmentService.getAppointmentsBySpecializationAndTimeRange(eq(specialization), eq(start), eq(end), any(Pageable.class))).thenReturn(response);
+        // when and then
+        mockMvc.perform(get("/api/appointments/specialization/{specialization}", specialization)
+                                .param("start", "2026-10-01T00:00:00")
+                                .param("end", "2026-10-02T00:00:00")
+                                .param("page", "0")
+                                .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].doctorId").value(1));
+        verify(appointmentService).getAppointmentsBySpecializationAndTimeRange(eq(specialization), eq(start), eq(end), any(Pageable.class));
+    }
+
+    @Test
+    void getAvailableAppointmentsWithoutSpecialization_ShouldReturnAppointments()
+            throws Exception {
+        // given
+        LocalDateTime start = LocalDateTime.of(2026, 10, 1, 0, 0);
+        LocalDateTime end = LocalDateTime.of(2026, 10, 2, 0, 0);
+        PageDto<AppointmentDto> response = new PageDto<>(
+                List.of(new AppointmentDto(1L,
+                                LocalDateTime.of(2026, 10, 1, 10, 0),
+                                LocalDateTime.of(2026, 10, 1, 10, 30),
+                                1L, null)), 0, 10, 1, 1);
+        when(appointmentService.getAvailableAppointmentsBySpecialization(isNull(), eq(start), eq(end), any(Pageable.class))).thenReturn(response);
+        // when and then
+        mockMvc.perform(get("/api/appointments/available")
+                                .param("start", "2026-10-01T00:00:00")
+                                .param("end", "2026-10-02T00:00:00")
+                                .param("page", "0")
+                                .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].doctorId").value(1));
+        verify(appointmentService).getAvailableAppointmentsBySpecialization(isNull(), eq(start), eq(end), any(Pageable.class));
+    }
 }

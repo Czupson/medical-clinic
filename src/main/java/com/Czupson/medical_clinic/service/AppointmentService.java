@@ -155,6 +155,17 @@ public class AppointmentService {
                         .map(appointmentMapper::toDto));
     }
 
+    @Transactional(readOnly = true)
+    public PageDto<AppointmentDto> getAppointmentsBySpecializationAndTimeRange(
+            String specialization,
+            LocalDateTime start,
+            LocalDateTime end,
+            Pageable pageable) {
+        log.info("Getting appointments by specialization and time range: " + "specialization={}, start={}, end={}, page={}, size={}", specialization, start, end, pageable.getPageNumber(), pageable.getPageSize());
+        return PageDto.from(appointmentRepository.findAppointmentsBySpecializationAndTimeRange(specialization,
+                        start, end, pageable).map(appointmentMapper::toDto));
+    }
+
     private void validateAppointmentTimeAvailability(
             Doctor doctor,
             LocalDateTime appointmentStart,

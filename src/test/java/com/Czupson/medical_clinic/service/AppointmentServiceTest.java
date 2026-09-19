@@ -488,4 +488,30 @@ public class AppointmentServiceTest {
         verify(doctorRepository).findById(doctorId);
         verifyNoInteractions(appointmentRepository, appointmentMapper);
     }
+
+    @Test
+    void getAppointmentsBySpecializationAndTimeRange_ShouldReturnAppointments() {
+        // given
+        String specialization = "Kardiolog";
+        LocalDateTime start = LocalDateTime.of(2026, 10, 1, 0, 0);
+        LocalDateTime end = LocalDateTime.of(2026, 10, 2, 0, 0);
+        Pageable pageable = PageRequest.of(0, 10);
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setAppointmentStart(LocalDateTime.of(2026, 10, 1, 10, 0));
+        appointment.setAppointmentEnd(LocalDateTime.of(2026, 10, 1, 10, 30));
+        Page<Appointment> appointmentPage = new PageImpl<>(List.of(appointment), pageable, 1);
+        AppointmentDto appointmentDto = new AppointmentDto(1L, appointment.getAppointmentStart(),
+                appointment.getAppointmentEnd(), 1L, 1L);
+        when(appointmentRepository.findAppointmentsBySpecializationAndTimeRange(specialization, start, end, pageable)).thenReturn(appointmentPage);
+        when(appointmentMapper.toDto(appointment)).thenReturn(appointmentDto);
+        // when
+        PageDto<AppointmentDto> result = appointmentService.getAppointmentsBySpecializationAndTimeRange(specialization,
+                        start, end, pageable);
+        // then
+        assertEquals(1, result.content().size());
+        assertEquals(appointmentDto, result.content().getFirst());
+        verify(appointmentRepository).findAppointmentsBySpecializationAndTimeRange(specialization, start, end, pageable);
+        verify(appointmentMapper).toDto(appointment);
+    }
 }

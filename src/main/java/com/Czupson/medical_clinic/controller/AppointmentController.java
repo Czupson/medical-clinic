@@ -110,16 +110,9 @@ public class AppointmentController {
         return appointmentService.getAvailableAppointmentsForDoctor(doctorId, pageable);
     }
 
-    @Operation(
-            summary = "Get available appointments by specialization",
-            description = "Returns available appointments for a specialization within a specified time interval"
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Available appointments retrieved successfully")
-    })
     @GetMapping("/available")
     public PageDto<AppointmentDto> getAvailableAppointmentsBySpecialization(
-            @RequestParam String specialization,
+            @RequestParam(required = false) String specialization,
             @RequestParam LocalDateTime start,
             @RequestParam LocalDateTime end,
             Pageable pageable) {
@@ -153,5 +146,20 @@ public class AppointmentController {
             Pageable pageable) {
         log.info("Getting appointments for doctor: doctorId={}", doctorId);
         return appointmentService.getDoctorAppointments(doctorId, pageable);
+    }
+
+    @GetMapping("/specialization/{specialization}")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Get appointments by specialization and time range")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Appointments retrieved successfully")
+    })
+    public PageDto<AppointmentDto> getAppointmentsBySpecializationAndTimeRange(
+            @PathVariable String specialization,
+            @RequestParam LocalDateTime start,
+            @RequestParam LocalDateTime end,
+            Pageable pageable) {
+        log.info("Getting appointments by specialization and time range: " + "specialization={}, start={}, end={}", specialization, start, end);
+        return appointmentService.getAppointmentsBySpecializationAndTimeRange(specialization, start, end, pageable);
     }
 }
