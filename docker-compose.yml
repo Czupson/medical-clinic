@@ -1,0 +1,23 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: medical-clinic
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/medicalclinicdb
+      SPRING_DATASOURCE_USERNAME: medicalclinic
+      SPRING_DATASOURCE_PASSWORD: medicalclinic123
+    ports:
+      - "8080:8080"
+  db:
+    image: postgres
+    container_name: medical-postgres
+    environment:
+      POSTGRES_DB: medicalclinicdb
+      POSTGRES_USER: medicalclinic
+      POSTGRES_PASSWORD: medicalclinic123
+    ports:
+      - "5432:5432"
