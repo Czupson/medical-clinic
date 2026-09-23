@@ -1,0 +1,159 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 005-create-facilities-table
+      author: Czupson
+      changes:
+        - createTable:
+            tableName: facilities
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+              - column:
+                  name: city
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: postal_code
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: street
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: building_number
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 006-create-doctors-table
+      author: Czupson
+      changes:
+        - createTable:
+            tableName: doctors
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: first_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: last_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: specialization
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    unique: true
+                    references: users(id)
+                    foreignKeyName: fk_doctors_user
+
+  - changeSet:
+      id: 007-create-doctor-facility-table
+      author: Czupson
+      changes:
+        - createTable:
+            tableName: doctor_facility
+            columns:
+              - column:
+                  name: doctor_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    references: doctors(id)
+                    foreignKeyName: fk_doctor_facility_doctor
+
+              - column:
+                  name: facility_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    references: facilities(id)
+                    foreignKeyName: fk_doctor_facility_facility
+
+        - addPrimaryKey:
+            tableName: doctor_facility
+            columnNames: doctor_id, facility_id
+            constraintName: pk_doctor_facility
+
+  - changeSet:
+      id: 008-create-appointments-table
+      author: Czupson
+      changes:
+        - createTable:
+            tableName: appointments
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: appointment_start
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: appointment_end
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: doctor_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    references: doctors(id)
+                    foreignKeyName: fk_appointments_doctor
+
+              - column:
+                  name: patient_id
+                  type: BIGINT
+                  constraints:
+                    references: patients(id)
+                    foreignKeyName: fk_appointments_patient

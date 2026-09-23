@@ -1,0 +1,56 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 001-create-patients-table
+      author: Czupson
+      changes:
+        - createTable:
+            tableName: patients
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: id_card_no
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+              - column:
+                  name: first_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: last_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: phone_number
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: birthday
+                  type: DATE
+
+  - changeSet:
+      id: 002-create-patient-index
+      author: Czupson
+      changes:
+        - createIndex:
+            tableName: patients
+            indexName: idx_patients_last_name
+            columns:
+              - column:
+                  name: last_name
