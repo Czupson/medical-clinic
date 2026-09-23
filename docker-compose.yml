@@ -21,3 +21,13 @@ services:
       POSTGRES_PASSWORD: medicalclinic123
     ports:
       - "5432:5432"
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: medical-pgadmin
+    depends_on:
+      - db
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@wp.pl
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
