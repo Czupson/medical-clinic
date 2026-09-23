@@ -1,17 +1,36 @@
 services:
-  app:
+  medical-clinic:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: medical-clinic
     depends_on:
       - db
+      - logstash
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/medicalclinicdb
       SPRING_DATASOURCE_USERNAME: medicalclinic
       SPRING_DATASOURCE_PASSWORD: medicalclinic123
+      LOGSTASH_HOST: logstash
     ports:
       - "8080:8080"
+    networks:
+      - elk-network
+  medical-clinic-proxy:
+    build:
+      context: ../medical-clinic-proxy
+      dockerfile: Dockerfile
+    container_name: medical-clinic-proxy
+    depends_on:
+      - medical-clinic
+      - logstash
+    environment:
+      MEDICAL_CLINIC_URL: http://medical-clinic:8080
+      LOGSTASH_HOST: logstash
+    ports:
+      - "8081:8081"
+    networks:
+      - elk-network
   db:
     image: postgres
     container_name: medical-postgres
@@ -21,6 +40,8 @@ services:
       POSTGRES_PASSWORD: medicalclinic123
     ports:
       - "5432:5432"
+    networks:
+      - elk-network
   pgadmin:
     image: dpage/pgadmin4
     container_name: medical-pgadmin
@@ -31,3 +52,44 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin123
     ports:
       - "5050:80"
+    networks:
+      - elk-network
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.16.2
+    container_name: medical-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    networks:
+      - elk-network
+  logstash:
+    build:
+      context: ./logstash
+      dockerfile: Dockerfile
+    container_name: medical-logstash
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5000:5000"
+    networks:
+      - elk-network
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.16.2
+    container_name: medical-kibana
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    networks:
+      - elk-network
+volumes:
+  es_data:
+networks:
+  elk-network:
+    external: true
